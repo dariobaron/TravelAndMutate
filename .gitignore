@@ -1,0 +1,13 @@
+# environment directory
+env/
+
+# hidden directories
+.*/
+
+# compiled libraries
+*.so
+
+# datasets
+*.csv
+*.tsv
+*.h5

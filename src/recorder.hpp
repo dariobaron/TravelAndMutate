@@ -1,0 +1,35 @@
+#ifndef RECORDER_HPP
+#define RECORDER_HPP
+
+#include <vector>
+#include "types.hpp"
+
+class Recorder{
+
+public:
+	Vec<FullTraj> dyn_;
+
+public:
+
+	template<typename ...Args>
+	void push_trajectory(Args ... args);
+
+	np_array<FullTraj> getFullTrajectory() const;
+};
+
+template<typename ...Args>
+void Recorder::push_trajectory(Args ... args){
+	dyn_.emplace_back(args...);
+}
+
+np_array<FullTraj> Recorder::getFullTrajectory() const{
+	np_array<FullTraj> records(dyn_.size());
+	auto view = records.mutable_unchecked<1>();
+	for (unsigned i = 0; i < dyn_.size(); ++i){
+		view(i) = dyn_[i];
+	}
+	return records;
+}
+
+
+#endif
