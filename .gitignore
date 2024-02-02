@@ -4,6 +4,9 @@ env/
 # hidden directories
 .*/
 
+# python caches
+__pycache__/
+
 # compiled libraries
 *.so
 
