@@ -40,9 +40,10 @@ System::System(RNGcore * rng, const np_array<double> & commuting_matrix, Time dt
 		throw std::runtime_error("Commuting matrix must be squared");
 	}
 	unsigned nPatches = commuting_matrix.shape(0);
+	auto view = commuting_matrix.unchecked<2>();
 	patches_.resize(nPatches);
 	for (unsigned i = 0; i < nPatches; ++i){
-		c_ij_.emplace_back(commuting_matrix.data(i,0), commuting_matrix.data(i,nPatches-1));
+		c_ij_.emplace_back(commuting_matrix.data(i,0), view.data(i,nPatches));
 	}
 }
 
@@ -63,10 +64,10 @@ void System::seedEpidemic(Vec<T> I0s){
 
 void System::spreadForTime(Time tmax){
 	for (auto & p : patches_){
-		p.record(t_);
+		p.update(t_);
 	}
+	Vec<double> rhos(patches_.size());
 	while (t_ < tmax){
-		Vec<double> rhos(patches_.size());
 		for (unsigned i = 0; i < patches_.size(); ++i){
 			rhos[i] = patches_[i].getRho();
 		}
@@ -81,11 +82,10 @@ void System::spreadForTime(Time tmax){
 			p.setNewRecoveries();
 			p.setNewOnsets();
 		}
-		for (auto & p : patches_){
-			p.update();
-			p.record(t_);
-		}
 		t_ += dt_;
+		for (auto & p : patches_){
+			p.update(t_);
+		}
 	}
 }
 

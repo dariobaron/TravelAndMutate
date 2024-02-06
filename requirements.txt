@@ -6,3 +6,4 @@ numpy
 pandas
 h5py
 scipy
+pyarrow

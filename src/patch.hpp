@@ -27,8 +27,7 @@ public:
 	void addNewInfections(unsigned Enew);
 	void setNewRecoveries();
 	void setNewOnsets();
-	void update();
-	void record(Time t);
+	void update(Time t);
 };
 
 Patch::Patch() : uninitialized_(true){}
@@ -60,11 +59,11 @@ void Patch::seed(unsigned I0){
 Vec<unsigned> Patch::computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const{
 	Vec<double> probs(rhos.size());
 	std::transform(rhos.begin(), rhos.end(), c_ij.begin(), probs.begin(), std::multiplies<>());
-	std::discrete_distribution Distr(probs.begin(), probs.end());
 	double f = beta_ * std::accumulate(probs.begin(), probs.end(), 0.);
-	unsigned Enew = std::round(f * S_);
-	Enew = std::min(S_, Enew);
+	std::binomial_distribution Binom(S_, f);
+	unsigned Enew = Binom(*rng_);
 	Vec<unsigned> Ninfectors(rhos.size(), 0);
+	std::discrete_distribution Distr(probs.begin(), probs.end());
 	for (unsigned i = 0; i < Enew; ++i){
 		++Ninfectors[Distr(*rng_)];
 	}
@@ -91,18 +90,15 @@ void Patch::setNewOnsets(){
 	Inew_ = std::min(E_, Inew_);
 }
 
-void Patch::update(){
+void Patch::update(Time t){
 	S_ += - Enew_;
 	E_ += Enew_ - Inew_;
 	I_ += Inew_ - Rnew_;
 	R_ += Rnew_;
+	rec_.push_trajectory(t, S_, E_, I_, R_, Enew_, Inew_);
 	Enew_ = 0;
 	Inew_ = 0;
 	Rnew_ = 0;
-}
-
-void Patch::record(Time t){
-	rec_.push_trajectory(t, S_, E_, I_, R_, Enew_, Inew_);
 }
 
 #endif
