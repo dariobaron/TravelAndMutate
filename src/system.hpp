@@ -30,6 +30,11 @@ public:
 	void spreadForTime(Time tmax);
 
 	auto getFullTrajectory(unsigned i);
+
+private:
+
+	bool isEpidemicAlive() const;
+
 };
 
 System::System(RNGcore * rng, const np_array<double> & commuting_matrix, Time dt) : rng_(rng), t_(0), dt_(dt){
@@ -67,7 +72,7 @@ void System::spreadForTime(Time tmax){
 		p.update(t_);
 	}
 	Vec<double> rhos(patches_.size());
-	while (t_ < tmax){
+	while (t_ < tmax && isEpidemicAlive()){
 		for (unsigned i = 0; i < patches_.size(); ++i){
 			rhos[i] = patches_[i].getRho();
 		}
@@ -91,6 +96,14 @@ void System::spreadForTime(Time tmax){
 
 auto System::getFullTrajectory(unsigned i){
 	return patches_[i].getRecorder().getFullTrajectory();
+}
+
+bool System::isEpidemicAlive() const{
+	bool check = false;
+	for (auto & p : patches_){
+		check = check || p.isEpidemicAlive();
+	}
+	return check;
 }
 
 #endif

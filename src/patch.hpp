@@ -28,6 +28,7 @@ public:
 	void setNewRecoveries();
 	void setNewOnsets();
 	void update(Time t);
+	bool isEpidemicAlive() const;
 };
 
 Patch::Patch() : uninitialized_(true){}
@@ -99,6 +100,10 @@ void Patch::update(Time t){
 	Enew_ = 0;
 	Inew_ = 0;
 	Rnew_ = 0;
+}
+
+bool Patch::isEpidemicAlive() const{
+	return E_ + I_;
 }
 
 #endif

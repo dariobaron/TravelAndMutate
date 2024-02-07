@@ -1,3 +1,5 @@
+#! ../env/bin/python
+
 import numpy as np
 from TravelAndMutate.randomcore import RNGcore
 
