@@ -7,3 +7,4 @@ pandas
 h5py
 scipy
 pyarrow
+tabulate

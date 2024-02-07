@@ -1,5 +1,5 @@
 import numpy as np
-from travelAndMutate.randomcore import RNGcore
+from TravelAndMutate.randomcore import RNGcore
 
 class BitGenerator(np.random.BitGenerator):
 	def __init__(self, seed=None):

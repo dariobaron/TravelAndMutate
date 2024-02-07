@@ -1,14 +1,14 @@
 
 # list of all modules
-SOURCES := $(wildcard *.cpp)
+SOURCES := $(wildcard src/*.cpp)
 # list of all headers
-HEADERS := $(wildcard *.hpp)
+HEADERS := $(wildcard src/*.hpp)
 # extension of the modules
 MODULEEXTENSION := $(shell python3-config --extension-suffix)
 # list of all object files by sostitution of all the *.cpp with *.o
-COMPILEDMODULES := $(patsubst %.cpp,%$(MODULEEXTENSION),$(SOURCES))
+COMPILEDMODULES := $(patsubst src/%.cpp,TravelAndMutate/%$(MODULEEXTENSION),$(SOURCES))
 # list of module names
-MODULENAMES := $(patsubst %.cpp,%,$(SOURCES))
+MODULENAMES := $(patsubst src/%.cpp,%,$(SOURCES))
 
 # compiler directives
 WARNING := -Wall -Wpedantic -Wextra -Wno-sign-compare
@@ -21,10 +21,10 @@ INCLUDES := $(shell python3 -m pybind11 --includes) -I$(shell python -c "import 
 
 all: $(COMPILEDMODULES)
 
-$(MODULENAMES): % : %$(MODULEEXTENSION)
+$(MODULENAMES): % : TravelAndMutate/%$(MODULEEXTENSION)
 
-%$(MODULEEXTENSION): %.cpp $(HEADERS)
-	$(CXX) $(WARNING) $(CXXFLAGS) $(INCLUDES) $< -o ../travelAndMutate/$@
+%$(MODULEEXTENSION): ../src/%.cpp $(HEADERS)
+	$(CXX) $(WARNING) $(CXXFLAGS) $(INCLUDES) $< -o $@
 
 clean:
 	rm -f $(COMPILEDMODULES)

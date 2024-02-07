@@ -5,7 +5,7 @@ PYBIND11_MODULE(system, m) {
 
     m.doc() = "Module including the Epidemic class";
 
-    py::module types = py::module::import("travelAndMutate.types");
+    py::module types = py::module::import("TravelAndMutate.types");
 
     py::class_<System>(m, "System")
         .def(py::init<RNGcore*,const np_array<double>&,Time>(),
