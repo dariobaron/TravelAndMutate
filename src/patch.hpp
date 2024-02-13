@@ -22,7 +22,7 @@ public:
 	~Patch();
 	double getRho() const;
 	const Recorder & getRecorder() const;
-	void setProperties(RNGcore * rng, PatchProperties prop);
+	void setProperties(RNGcore * rng, std::string pooltype, PatchProperties prop);
 	Vec<unsigned> computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const;
 	auto sampleInfectors(unsigned Enew) const;
 	void addNewInfections(const Pool & Enew);
