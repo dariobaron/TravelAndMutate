@@ -21,4 +21,10 @@ struct FullTraj{
 			t(t), S(S), E(E), I(I), R(R), Enew(Enew), Inew(Inew) {}
 };
 
+struct PatchProperties{
+	unsigned N;
+	double beta, epsilon, mu;
+	unsigned I0;
+};
+
 #endif

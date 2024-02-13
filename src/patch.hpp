@@ -22,8 +22,7 @@ public:
 	~Patch();
 	double getRho() const;
 	const Recorder & getRecorder() const;
-	void setProperties(RNGcore * rng, std::string pooltype, unsigned N, double beta, double epsilon, double mu);
-	void seed(unsigned I0);
+	void setProperties(RNGcore * rng, PatchProperties prop);
 	Vec<unsigned> computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const;
 	auto sampleInfectors(unsigned Enew) const;
 	void addNewInfections(const Pool & Enew);
@@ -48,12 +47,12 @@ const Recorder & Patch::getRecorder() const{
 	return rec_;
 }
 
-void Patch::setProperties(RNGcore * rng, std::string pooltype, unsigned N, double beta, double epsilon, double mu){
+void Patch::setProperties(RNGcore * rng, std::string pooltype, PatchProperties prop){
 	rng_ = rng;
-	N_ = N;
-	beta_ = beta;
-	epsilon_ = epsilon;
-	mu_ = mu;
+	N_ = prop.N;
+	beta_ = prop.beta;
+	epsilon_ = prop.epsilon;
+	mu_ = prop.mu;
 	if (pooltype == "mix"){
 		S_ = new Pool(N_); E_ = new Pool(0); I_ = new Pool(0); R_ = new Pool(0);
 		Enew_ = new Pool(0); Inew_ = new Pool(0); Rnew_ = new Pool(0);
@@ -72,11 +71,6 @@ void Patch::setProperties(RNGcore * rng, std::string pooltype, unsigned N, doubl
 */	else {
 		throw std::runtime_error("Pool type '"+pooltype+"' is not recognized");
 	}
-}
-
-void Patch::seed(unsigned I0){
-	*S_ -= I0;
-	*E_ += I0;
 }
 
 Vec<unsigned> Patch::computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const{
