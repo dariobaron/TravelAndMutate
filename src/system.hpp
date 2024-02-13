@@ -32,7 +32,7 @@ private:
 };
 
 System::System(RNGcore * rng, Time dt, std::string pooltype, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties) :
-				rng_(rng), patches_(commuting_matrix.shape(0)), t_(0), dt_(dt){
+				rng_(rng), t_(0), dt_(dt){
 	if (commuting_matrix.ndim() != 2){
 		throw std::runtime_error("Commuting matrix must have 2 dimensions");
 	}
@@ -46,7 +46,7 @@ System::System(RNGcore * rng, Time dt, std::string pooltype, const np_array<doub
 	auto view = commuting_matrix.unchecked<2>();
 	for (unsigned i = 0; i < nPatches; ++i){
 		c_ij_.emplace_back(view.data(i,0), view.data(i,nPatches));
-		patches_[i].setProperties(rng_, pooltype, properties.at(i));
+		patches_.emplace_back(rng_, pooltype, properties.at(i));
 	}
 }
 

@@ -11,18 +11,17 @@ class Patch{
 	RNGcore * rng_;
 	Recorder rec_;
 	unsigned N_;
-	Pool * S_, * E_, * I_, * R_;
 	double beta_;
 	double epsilon_;
 	double mu_;
+	Pool * S_, * E_, * I_, * R_;
 	Pool * Enew_, * Inew_, * Rnew_;
 	bool uninitialized_;
 public:
-	Patch();
+	Patch(RNGcore * rng, std::string pooltype, PatchProperties prop);
 	~Patch();
 	double getRho() const;
 	const Recorder & getRecorder() const;
-	void setProperties(RNGcore * rng, std::string pooltype, PatchProperties prop);
 	Vec<unsigned> computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const;
 	auto sampleInfectors(unsigned Enew) const;
 	void addNewInfections(const Pool & Enew);
@@ -32,22 +31,8 @@ public:
 	bool isEpidemicAlive() const;
 };
 
-Patch::Patch() : uninitialized_(true){}
 
-Patch::~Patch(){
-	delete S_; delete E_; delete I_; delete R_;
-	delete Enew_; delete Inew_; delete Rnew_;
-}
-
-double Patch::getRho() const{
-	return I_->getPhi() / N_;
-}
-
-const Recorder & Patch::getRecorder() const{
-	return rec_;
-}
-
-void Patch::setProperties(RNGcore * rng, std::string pooltype, PatchProperties prop){
+Patch::Patch(RNGcore * rng, std::string pooltype, PatchProperties prop) : uninitialized_(true){
 	rng_ = rng;
 	N_ = prop.N;
 	beta_ = prop.beta;
@@ -73,6 +58,23 @@ void Patch::setProperties(RNGcore * rng, std::string pooltype, PatchProperties p
 	}
 }
 
+
+Patch::~Patch(){
+	delete S_; delete E_; delete I_; delete R_;
+	delete Enew_; delete Inew_; delete Rnew_;
+}
+
+
+double Patch::getRho() const{
+	return I_->getPhi() / N_;
+}
+
+
+const Recorder & Patch::getRecorder() const{
+	return rec_;
+}
+
+
 Vec<unsigned> Patch::computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const{
 	Vec<double> probs(rhos.size());
 	std::transform(rhos.begin(), rhos.end(), c_ij.begin(), probs.begin(), std::multiplies<>());
@@ -87,13 +89,16 @@ Vec<unsigned> Patch::computeInfections(const Vec<double> & rhos, const Vec<doubl
 	return Ninfectors;
 }
 
+
 auto Patch::sampleInfectors(unsigned Enew) const{
 	return I_->sample(Enew);
 }
 
+
 void Patch::addNewInfections(const Pool & Enew){
 	*Enew_ += Enew;
 }
+
 
 void Patch::setNewRecoveries(){
 	std::poisson_distribution Distr(mu_ * I_->size());
@@ -102,12 +107,14 @@ void Patch::setNewRecoveries(){
 	*Rnew_ = I_->sample(Rnew);
 }
 
+
 void Patch::setNewOnsets(){
 	std::poisson_distribution Distr(epsilon_ * E_->size());
 	unsigned Inew = Distr(*rng_);
 	Inew = std::min(E_->size(), Inew);
 	*Inew_ = E_->sample(Inew);
 }
+
 
 void Patch::update(Time t){
 	(*S_) -= (*Enew_);
@@ -119,6 +126,7 @@ void Patch::update(Time t){
 	Inew_->clear();
 	Rnew_->clear();
 }
+
 
 bool Patch::isEpidemicAlive() const{
 	return (*E_).size() + (*I_).size();
