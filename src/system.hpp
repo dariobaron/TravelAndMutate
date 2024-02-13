@@ -19,13 +19,7 @@ class System{
 
 public:
 
-	System(RNGcore * rng, const np_array<double> & commuting_matrix, Time dt);
-
-	template<typename ...Args>
-	void setPatchProperties(unsigned i, Args... args);
-	
-	template<typename T>
-	void seedEpidemic(Vec<T> I0s);
+	System(RNGcore * rng, Time dt, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties);
 
 	void spreadForTime(Time tmax);
 
@@ -37,33 +31,22 @@ private:
 
 };
 
-System::System(RNGcore * rng, const np_array<double> & commuting_matrix, Time dt) : rng_(rng), t_(0), dt_(dt){
+System::System(RNGcore * rng, Time dt, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties) :
+				rng_(rng), patches_(commuting_matrix.shape(0)), t_(0), dt_(dt){
 	if (commuting_matrix.ndim() != 2){
 		throw std::runtime_error("Commuting matrix must have 2 dimensions");
 	}
 	if (commuting_matrix.shape(0) != commuting_matrix.shape(1)){
 		throw std::runtime_error("Commuting matrix must be squared");
 	}
+	if (commuting_matrix.shape(0) != properties.shape(0)){
+		throw std::runtime_error("Shape of commuting matrix and properties must match");
+	}
 	unsigned nPatches = commuting_matrix.shape(0);
 	auto view = commuting_matrix.unchecked<2>();
-	patches_.resize(nPatches);
 	for (unsigned i = 0; i < nPatches; ++i){
-		c_ij_.emplace_back(commuting_matrix.data(i,0), view.data(i,nPatches));
-	}
-}
-
-template<typename ...Args>
-void System::setPatchProperties(unsigned i, Args... args){
-	patches_[i].setProperties(rng_, args...);
-}
-
-template<typename T>
-void System::seedEpidemic(Vec<T> I0s){
-	if (I0s.size() != patches_.size()){
-		throw std::runtime_error("Epidemic must be seeded with I0 array of length "+std::to_string(patches_.size()));
-	}
-	for (unsigned i = 0; i < I0s.size(); ++i){
-		patches_[i].seed(I0s[i]);
+		c_ij_.emplace_back(view.data(i,0), view.data(i,nPatches));
+		patches_[i].setProperties(rng_, properties.at(i));
 	}
 }
 

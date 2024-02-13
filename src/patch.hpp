@@ -4,7 +4,6 @@
 #include "types.hpp"
 #include "randomcore.hpp"
 #include "recorder.hpp"
-#include "haplotype.hpp"
 
 class Patch{
 	RNGcore * rng_;
@@ -20,8 +19,7 @@ public:
 	Patch();
 	double getRho() const;
 	const Recorder & getRecorder() const;
-	void setProperties(RNGcore * rng, unsigned N, double beta, double epsilon, double mu);
-	void seed(unsigned I0);
+	void setProperties(RNGcore * rng, PatchProperties prop);
 	Vec<unsigned> computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const;
 	unsigned sampleInfectors(unsigned Enew) const;
 	void addNewInfections(unsigned Enew);
@@ -41,20 +39,15 @@ const Recorder & Patch::getRecorder() const{
 	return rec_;
 }
 
-void Patch::setProperties(RNGcore * rng, unsigned N, double beta, double epsilon, double mu){
+void Patch::setProperties(RNGcore * rng, PatchProperties prop){
 	uninitialized_ = false;
 	rng_ = rng;
-	N_ = N;
-	S_ = N_; E_ = 0; I_ = 0; R_ = 0;
+	N_ = prop.N;
+	beta_ = prop.beta;
+	epsilon_ = prop.epsilon;
+	mu_ = prop.mu;
+	S_ = N_ - prop.I0; E_ = prop.I0; I_ = 0; R_ = 0;
 	Enew_ = 0; Inew_ = 0; Rnew_ = 0;
-	beta_ = beta;
-	epsilon_ = epsilon;
-	mu_ = mu;
-}
-
-void Patch::seed(unsigned I0){
-	S_ -= I0;
-	E_ += I0;
 }
 
 Vec<unsigned> Patch::computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const{

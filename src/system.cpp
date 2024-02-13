@@ -8,10 +8,8 @@ PYBIND11_MODULE(system, m) {
     py::module types = py::module::import("TravelAndMutate.types");
 
     py::class_<System>(m, "System")
-        .def(py::init<RNGcore*,const np_array<double>&,Time>(),
-                py::arg("rng_ptr"), py::arg("commuting_matrix"), py::arg("dt"))
-        .def("setPatchProperties", &System::setPatchProperties<unsigned,double,double,double>)
-		.def("seedEpidemic", &System::seedEpidemic<unsigned>)
+        .def(py::init<RNGcore*,Time,const np_array<double>&,const np_array<PatchProperties>&>(),
+                py::arg("rng_ptr"), py::arg("dt"), py::arg("commuting_matrix"), py::arg("patch_properties"))
 		.def("spreadForTime", &System::spreadForTime)
 		.def("getFullTrajectory", &System::getFullTrajectory);
 }
