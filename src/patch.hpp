@@ -39,13 +39,13 @@ Patch::Patch(RNGcore * rng, std::string pooltype, PatchProperties prop) : uninit
 	epsilon_ = prop.epsilon;
 	mu_ = prop.mu;
 	if (pooltype == "mix"){
-		S_ = new Pool(N_); E_ = new Pool(0); I_ = new Pool(0); R_ = new Pool(0);
+		S_ = new Pool(N_-prop.I0); E_ = new Pool(prop.I0); I_ = new Pool(0); R_ = new Pool(0);
 		Enew_ = new Pool(0); Inew_ = new Pool(0); Rnew_ = new Pool(0);
 		uninitialized_ = false;
 	}
 	else if (pooltype == "individual"){
-		S_ = new Individual(N_); E_ = new Individual(0); I_ = new Individual(0); R_ = new Individual(0);
-		Enew_ = new Individual(0); Inew_ = new Individual(0); Rnew_ = new Individual(0);
+		S_ = new Reservoir(N_-prop.I0); E_ = new Individuals(prop.I0, N_); I_ = new Individuals(0, N_); R_ = new Pool(0);
+		Enew_ = new Individuals(0, N_); Inew_ = new Individuals(0, N_); Rnew_ = new Individuals(0, N_);
 		uninitialized_ = false;
 	}
 /*	else if (pooltype == "haplotype"){
@@ -90,8 +90,8 @@ Vec<unsigned> Patch::computeInfections(const Vec<double> & rhos, const Vec<doubl
 }
 
 
-auto Patch::sampleInfectors(unsigned Enew) const{
-	return I_->sample(Enew);
+auto Patch::sampleInfectors(unsigned Ninfectors) const{
+	return I_->sample(Ninfectors);
 }
 
 
@@ -118,8 +118,10 @@ void Patch::setNewOnsets(){
 
 void Patch::update(Time t){
 	(*S_) -= (*Enew_);
-	(*E_) += (*Enew_) - (*Inew_);
-	(*I_) += (*Inew_) - (*Rnew_);
+	(*E_) += (*Enew_);
+	(*E_) -= (*Inew_);
+	(*I_) += (*Inew_);
+	(*I_) -= (*Rnew_);
 	(*R_) += (*Rnew_);
 	rec_.push_trajectory(t, (*S_).size(), (*E_).size(), (*I_).size(), (*R_).size(), (*Enew_).size(), (*Inew_).size());
 	Enew_->clear();

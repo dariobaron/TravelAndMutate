@@ -14,7 +14,6 @@ public:
 	virtual Pool& operator+=(const Pool & other);
 	virtual Pool& operator-=(unsigned n);
 	virtual Pool& operator-=(const Pool & other);
-	friend Pool operator-(Pool a, const Pool & b);
 	virtual Pool sample(unsigned Enew) const;
 	virtual void clear();
 };
@@ -54,11 +53,6 @@ Pool& Pool::operator-=(unsigned n){
 Pool& Pool::operator-=(const Pool & other){
 	size_ -= other.size_;
 	return *this;
-}
-
-Pool operator-(Pool a, const Pool & b){
-	a.size_ -= b.size_;
-	return a;
 }
 
 Pool Pool::sample(unsigned Enew) const{
