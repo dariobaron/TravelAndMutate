@@ -1,8 +1,8 @@
 #ifndef POOLS_HPP
 #define POOLS_HPP
 
-#include "pools/pool.hpp"
+#include "pools/mix.hpp"
 #include "pools/individuals.hpp"
-#include "pools/haplotype.hpp"
+#include "pools/genetics.hpp"
 
 #endif

@@ -1,9 +1,7 @@
 #ifndef HAPLOTYPE_HPP
 #define HAPLOTYPE_HPP
 
-#include "pool.hpp"
-
-class Haplotype : public Pool{
+class Haplotype{
 public:
 	Haplotype(unsigned n);
 	~Haplotype(){}

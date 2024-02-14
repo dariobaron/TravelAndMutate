@@ -2,14 +2,13 @@
 #define INDIVIDUAL_HPP
 
 #include "../types.hpp"
-#include "pool.hpp"
 
-class Reservoir : public Pool{
+class Reservoir{
 public:
 	Reservoir(unsigned n);
 };
 
-class Individuals : public Pool{
+class Individuals{
 protected:
 	Vec<unsigned> ids_;
 public:
@@ -25,7 +24,7 @@ public:
 };
 
 
-Individuals::Individuals(unsigned n, unsigned nmax) : Pool(n){}
+Individuals::Individuals(unsigned n, unsigned nmax){}
 
 
 #endif

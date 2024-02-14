@@ -9,17 +9,18 @@
 #include "randomcore.hpp"
 #include "patch.hpp"
 
+template<typename PoolType>
 class System{
 
 	RNGcore * rng_;
-	Vec<Patch> patches_;
+	Vec<Patch<PoolType>> patches_;
 	Vec<Vec<double>> c_ij_;
 	Time t_;
 	Time dt_;
 
 public:
 
-	System(RNGcore * rng, Time dt, std::string pooltype, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties);
+	System(RNGcore * rng, Time dt, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties);
 
 	void spreadForTime(Time tmax);
 
@@ -31,7 +32,9 @@ private:
 
 };
 
-System::System(RNGcore * rng, Time dt, std::string pooltype, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties) :
+
+template<typename PoolType>
+System<PoolType>::System(RNGcore * rng, Time dt, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties) :
 				rng_(rng), t_(0), dt_(dt){
 	if (commuting_matrix.ndim() != 2){
 		throw std::runtime_error("Commuting matrix must have 2 dimensions");
@@ -46,11 +49,13 @@ System::System(RNGcore * rng, Time dt, std::string pooltype, const np_array<doub
 	auto view = commuting_matrix.unchecked<2>();
 	for (unsigned i = 0; i < nPatches; ++i){
 		c_ij_.emplace_back(view.data(i,0), view.data(i,nPatches));
-		patches_.emplace_back(rng_, pooltype, properties.at(i));
+		patches_.emplace_back(rng_, properties.at(i));
 	}
 }
 
-void System::spreadForTime(Time tmax){
+
+template<typename PoolType>
+void System<PoolType>::spreadForTime(Time tmax){
 	for (auto & p : patches_){
 		p.update(t_);
 	}
@@ -77,11 +82,15 @@ void System::spreadForTime(Time tmax){
 	}
 }
 
-auto System::getFullTrajectory(unsigned i){
+
+template<typename PoolType>
+auto System<PoolType>::getFullTrajectory(unsigned i){
 	return patches_[i].getRecorder().getFullTrajectory();
 }
 
-bool System::isEpidemicAlive() const{
+
+template<typename PoolType>
+bool System<PoolType>::isEpidemicAlive() const{
 	bool check = false;
 	for (auto & p : patches_){
 		check = check || p.isEpidemicAlive();
