@@ -11,6 +11,8 @@ using np_array = py::array_t<T,py::array::c_style>;
 
 using Time = unsigned;
 
+using PatchID = unsigned;
+
 template<typename T>
 using Vec = std::vector<T>;
 
