@@ -17,8 +17,7 @@ public:
 	IndivDiff(PatchID patch_id, Vec<Individual> v);
 	IndivDiff(PatchID patch_id, Vec<unsigned> v);
 	unsigned size() const;
-	Individual& operator[](unsigned i);
-	const Individual& operator[](unsigned i) const;
+	const Vec<Individual>& getIndividuals() const;
 	IndivDiff& operator+=(const IndivDiff & other);
 	void clear();
 	void moveFromTo(IndivPassive & source, IndivActive & target) const;
@@ -36,12 +35,8 @@ unsigned IndivDiff::size() const{
 	return std::max(individuals_.size(), indices_.size());
 }
 
-Individual& IndivDiff::operator[](unsigned i){
-	return individuals_[i];
-}
-
-const Individual& IndivDiff::operator[](unsigned i) const{
-	return individuals_[i];
+const Vec<Individual>& IndivDiff::getIndividuals() const{
+	return individuals_;
 }
 
 IndivDiff& IndivDiff::operator+=(const IndivDiff & other){

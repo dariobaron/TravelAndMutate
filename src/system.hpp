@@ -20,6 +20,7 @@ public:
 	System(RNGcore * rng, Time dt, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties);
 	void spreadForTime(Time tmax);
 	auto getFullTrajectory(unsigned i);
+	auto getInfectionTree(unsigned i);
 private:
 	bool isEpidemicAlive() const;
 };
@@ -78,6 +79,12 @@ void System<PoolType>::spreadForTime(Time tmax){
 template<Pool PoolType>
 auto System<PoolType>::getFullTrajectory(unsigned i){
 	return patches_[i].getRecorder().getFullTrajectory();
+}
+
+
+template<Pool PoolType>
+auto System<PoolType>::getInfectionTree(unsigned i){
+	return patches_[i].getRecorder().getInfectionTree();
 }
 
 

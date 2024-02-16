@@ -40,8 +40,8 @@ Patch<PoolType>::Patch(RNGcore * rng, PatchID patch_id, PatchProperties prop) :
 		E_(patch_id), I_(patch_id),
 		Enew_(patch_id), Inew_(patch_id), Rnew_(patch_id)
 {
-	auto I0 = S_.generate(prop.I0);
-	I0.moveFromTo(S_, E_);
+	Enew_ = S_.generate(prop.I0);
+	Enew_.moveFromTo(S_, E_);
 }
 
 
@@ -107,6 +107,11 @@ void Patch<PoolType>::update(Time t){
 	Inew_.moveFromTo(E_, I_);
 	Enew_.moveFromTo(S_, E_);
 	rec_.push_trajectory(t, S_.size(), E_.size(), I_.size(), R_.size(), Enew_.size(), Inew_.size());
+	if constexpr (std::is_same<PoolType,Individuals>::value){
+		for (auto & i : Enew_.getIndividuals()){
+			rec_.push_tree(t, i.patch_, i.id_, i.infector_patch_, i.infector_id_);
+		}
+	}
 	Enew_.clear();
 	Inew_.clear();
 	Rnew_.clear();

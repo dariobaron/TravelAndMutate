@@ -8,13 +8,14 @@ class Recorder{
 
 public:
 	Vec<FullTraj> dyn_;
-
+	Vec<InfecTree> tree_;
 public:
-
 	template<typename ...Args>
 	void push_trajectory(Args ... args);
-
 	np_array<FullTraj> getFullTrajectory() const;
+	template<typename ...Args>
+	void push_tree(Args ... args);
+	np_array<InfecTree> getInfectionTree() const;
 };
 
 template<typename ...Args>
@@ -27,6 +28,20 @@ np_array<FullTraj> Recorder::getFullTrajectory() const{
 	auto view = records.mutable_unchecked<1>();
 	for (unsigned i = 0; i < dyn_.size(); ++i){
 		view(i) = dyn_[i];
+	}
+	return records;
+}
+
+template<typename ...Args>
+void Recorder::push_tree(Args ... args){
+	tree_.emplace_back(args...);
+}
+
+np_array<InfecTree> Recorder::getInfectionTree() const{
+	np_array<InfecTree> records(tree_.size());
+	auto view = records.mutable_unchecked<1>();
+	for (unsigned i = 0; i < tree_.size(); ++i){
+		view(i) = tree_[i];
 	}
 	return records;
 }
