@@ -35,7 +35,7 @@ IndivDiff IndivPassive::generate(unsigned n){
 
 IndivDiff IndivPassive::generate(const IndivDiff & other){
 	Vec<Individual> v_ind(other.size());
-	auto infectors = other.getIndividuals();
+	const Vec<Individual> & infectors = other.getIndividuals();
 	for (unsigned i = 0; i < v_ind.size(); ++i){
 		v_ind[i] = Individual(patch_id_, count_, infectors[i].patch_, infectors[i].id_);
 		++count_;

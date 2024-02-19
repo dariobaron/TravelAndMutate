@@ -41,7 +41,7 @@ IndivDiff IndivActive::sample(RNGcore * rng, unsigned n) const{
 }
 
 IndivDiff IndivActive::sampleWithReplacement(RNGcore * rng, unsigned n) const{
-	std::uniform_int_distribution<unsigned> Distr(0, individuals_.size());
+	std::uniform_int_distribution<unsigned> Distr(0, individuals_.size()-1);
 	Vec<Individual> sampled(n);
 	for (auto & s : sampled){
 		s = individuals_[Distr(rng->get())];
