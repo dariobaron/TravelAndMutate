@@ -1,5 +1,9 @@
 # environment directory
 env/
+env
+
+# data directory
+data/
 
 # hidden directories
 .*/

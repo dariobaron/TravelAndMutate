@@ -18,5 +18,6 @@ PYBIND11_MODULE(system, m) {
 		py::arg("rng_ptr"), py::arg("dt"), py::arg("commuting_matrix"), py::arg("patch_properties"))
 		.def("spreadForTime", &System<Individuals>::spreadForTime)
 		.def("getFullTrajectory", &System<Individuals>::getFullTrajectory)
-		.def("getInfectionTree", &System<Individuals>::getInfectionTree);
+		.def("getInfectionTree", &System<Individuals>::getInfectionTree)
+		.def("getOneTree", &System<Individuals>::getOneTree);
 }

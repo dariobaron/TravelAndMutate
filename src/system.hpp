@@ -8,6 +8,7 @@
 #include "types.hpp"
 #include "randomcore.hpp"
 #include "patch.hpp"
+#include "trees.hpp"
 
 template<Pool PoolType>
 class System{
@@ -19,8 +20,9 @@ class System{
 public:
 	System(RNGcore * rng, Time dt, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties);
 	void spreadForTime(Time tmax);
-	auto getFullTrajectory(unsigned i);
-	auto getInfectionTree(unsigned i);
+	auto getFullTrajectory(unsigned i) const;
+	auto getInfectionTree(unsigned i) const;
+	auto getOneTree() const;
 private:
 	bool isEpidemicAlive() const;
 };
@@ -77,14 +79,24 @@ void System<PoolType>::spreadForTime(Time tmax){
 
 
 template<Pool PoolType>
-auto System<PoolType>::getFullTrajectory(unsigned i){
+auto System<PoolType>::getFullTrajectory(unsigned i) const{
 	return patches_[i].getRecorder().getFullTrajectory();
 }
 
 
 template<Pool PoolType>
-auto System<PoolType>::getInfectionTree(unsigned i){
+auto System<PoolType>::getInfectionTree(unsigned i) const{
 	return patches_[i].getRecorder().getInfectionTree();
+}
+
+
+template<Pool PoolType>
+auto System<PoolType>::getOneTree() const{
+	Vec<const Vec<InfecTree> *> trees;
+	for (auto & p : patches_){
+		trees.push_back(&p.getRecorder().tree_);
+	}
+	return consolidateTree(trees);
 }
 
 
