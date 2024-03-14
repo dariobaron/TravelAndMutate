@@ -4,10 +4,21 @@
 #include <map>
 #include <exception>
 #include "types.hpp"
-#include "recorder.hpp"
 #include "individual.hpp"
 
-np_array<unsigned> consolidateTree(const Vec<const Vec<InfecTree>*> & trees){
+class TreeBalanceProxy{
+	np_array<unsigned> tree_;
+	unsigned internals_;
+	unsigned tips_;
+public:
+	TreeBalanceProxy(Vec<unsigned> shape) : tree_(shape) {};
+	friend TreeBalanceProxy treebalanceTree(const Vec<const Vec<InfecTree>*> & trees);
+	np_array<unsigned> getTree() const	{	return tree_;		};
+	unsigned getInternals() const		{	return internals_;	};
+	unsigned getTips() const			{	return tips_;		};
+};
+
+TreeBalanceProxy treebalanceTree(const Vec<const Vec<InfecTree>*> & trees){
 	// checking that there is only one root
 	Individual root;
 	auto checkInfectedByExtern = [](const InfecTree & i){ return i.inf_loc == -1 && i.inf_ID == -1; };
@@ -32,7 +43,7 @@ np_array<unsigned> consolidateTree(const Vec<const Vec<InfecTree>*> & trees){
 		tot_edges += tree->size();
 	}
 	tot_edges -= nroots;
-	np_array<unsigned> array(Vec<unsigned>({tot_edges,2}));
+	TreeBalanceProxy treeTB(Vec<unsigned>({tot_edges,2}));
 	// creating references to the individuals
 	std::map<Individual,unsigned,IndividualCompare> internal, tips;
 	// looping over all the patches
@@ -58,9 +69,8 @@ np_array<unsigned> consolidateTree(const Vec<const Vec<InfecTree>*> & trees){
 		}
 	}
 	internal.erase(root);
-//////////////////
-py::print("internal", internal.size(), "tips", tips.size());
-//////////////////
+	treeTB.internals_ = internal.size() + 1;
+	treeTB.tips_ = tips.size();
 	// creating a unique pool to map the individuals, setting new names for the nodes:
 	// considering n (n° of tips) and m (total number of individuals involved)
 	// tips: [1, n] // root : n+1 // internal : [n+2, m]
@@ -92,14 +102,14 @@ py::print("internal", internal.size(), "tips", tips.size());
 			// performing action only on non-root nodes
 			if (!checkInfectedByExtern(edge)){
 				Individual infector(edge.inf_loc, edge.inf_ID);
-				array.mutable_at(i,0) = all_ind.at(infector);
+				treeTB.tree_.mutable_at(i,0) = all_ind.at(infector);
 				Individual infectee(edge.loc, edge.ID);
-				array.mutable_at(i,1) = all_ind.at(infectee);
+				treeTB.tree_.mutable_at(i,1) = all_ind.at(infectee);
 				++i;
 			}
 		}
 	}
-	return array;
+	return treeTB;
 }
 
 #endif

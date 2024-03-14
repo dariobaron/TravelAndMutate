@@ -16,21 +16,20 @@ class System{
 	Vec<Patch<PoolType>> patches_;
 	Vec<Vec<double>> c_ij_;
 	Time t_;
-	Time dt_;
 public:
-	System(RNGcore * rng, Time dt, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties);
+	System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties);
 	void spreadForTime(Time tmax);
 	auto getFullTrajectory(unsigned i) const;
 	auto getInfectionTree(unsigned i) const;
-	auto getOneTree() const;
+	auto getTreeBalance() const;
 private:
 	bool isEpidemicAlive() const;
 };
 
 
 template<Pool PoolType>
-System<PoolType>::System(RNGcore * rng, Time dt, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties) :
-				rng_(rng), t_(0), dt_(dt){
+System<PoolType>::System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties) :
+				rng_(rng), t_(0){
 	if (commuting_matrix.ndim() != 2){
 		throw std::runtime_error("Commuting matrix must have 2 dimensions");
 	}
@@ -70,7 +69,7 @@ void System<PoolType>::spreadForTime(Time tmax){
 			p.setNewRecoveries();
 			p.setNewOnsets();
 		}
-		t_ += dt_;
+		++t_;
 		for (auto & p : patches_){
 			p.update(t_);
 		}
@@ -91,12 +90,12 @@ auto System<PoolType>::getInfectionTree(unsigned i) const{
 
 
 template<Pool PoolType>
-auto System<PoolType>::getOneTree() const{
+auto System<PoolType>::getTreeBalance() const{
 	Vec<const Vec<InfecTree> *> trees;
 	for (auto & p : patches_){
 		trees.push_back(&p.getRecorder().tree_);
 	}
-	return consolidateTree(trees);
+	return treebalanceTree(trees);
 }
 
 
