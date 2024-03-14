@@ -42,6 +42,7 @@ Patch<PoolType>::Patch(RNGcore * rng, PatchID patch_id, PatchProperties prop) :
 {
 	Enew_ = S_.generate(prop.I0);
 	Enew_.moveFromTo(S_, E_);
+	Enew_.clear();
 }
 
 
@@ -87,7 +88,7 @@ void Patch<PoolType>::addNewInfections(const PoolType::Diff & Enew){
 
 template<Pool PoolType>
 void Patch<PoolType>::setNewRecoveries(){
-	std::poisson_distribution Distr(mu_ * I_.size());
+	std::binomial_distribution Distr(I_.size(), mu_);
 	unsigned Rnew = Distr(*rng_);
 	Rnew_ = I_.sample(rng_, Rnew);
 }
@@ -95,7 +96,7 @@ void Patch<PoolType>::setNewRecoveries(){
 
 template<Pool PoolType>
 void Patch<PoolType>::setNewOnsets(){
-	std::poisson_distribution Distr(epsilon_ * E_.size());
+	std::binomial_distribution Distr(E_.size(), epsilon_);
 	unsigned Inew = Distr(*rng_);
 	Inew_ = E_.sample(rng_, Inew);
 }
