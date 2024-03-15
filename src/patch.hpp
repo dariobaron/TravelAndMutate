@@ -42,6 +42,11 @@ Patch<PoolType>::Patch(RNGcore * rng, PatchID patch_id, PatchProperties prop) :
 {
 	Enew_ = S_.generate(prop.I0);
 	Enew_.moveFromTo(S_, E_);
+	if constexpr (std::is_same<PoolType,Individuals>::value){
+		for (auto & i : Enew_.getIndividuals()){
+			rec_.push_tree(Time(0), i.patch_, i.id_, i.infector_patch_, i.infector_id_);
+		}
+	}
 	Enew_.clear();
 }
 
