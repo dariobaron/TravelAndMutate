@@ -2,7 +2,7 @@ library(ape)
 library(treebalance)
 library(hdf5r)
 
-metrics <- c("cherryI", "B1I", "maxWidth", "mWovermD", "maxDelW",
+metrics <- c("cherryI", "B1I", "B2I", "maxWidth", "mWovermD", "maxDelW",
              "rQuartetI", "avgLeafDepI", "avgVertDep",
              "IbasedI", "maxDepth", "sackinI", "sShapeI", "totCophI",
              "totIntPathLen", "totPathLen", "varLeafDepI")
@@ -24,8 +24,15 @@ for (dataset_name in list.datasets(file.h5, recursive = TRUE)) {
       if (!dataset$attr_exists(metric)) {
         print(paste("Computing metric", metric))
         func <- get(metric)
-        value <- func(tree)
-        h5attr(dataset, metric) <- value
+        tryCatch({
+          value <- func(tree)
+          h5attr(dataset, metric) <- value
+        }, warning = function(war) {
+          print(war)
+        }, error = function(err) {
+          print(err)
+        }, finally = {
+        })
       } else {
          print(paste("Metric", metric, "was already computed for this dataset."))
       }
