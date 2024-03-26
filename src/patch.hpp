@@ -1,60 +1,74 @@
 #ifndef PATCH_HPP
 #define PATCH_HPP
 
+#include <type_traits>
 #include "types.hpp"
 #include "randomcore.hpp"
 #include "recorder.hpp"
+#include "pools.hpp"
 
+template<Pool PoolType>
 class Patch{
 	RNGcore * rng_;
 	Recorder rec_;
 	unsigned N_;
-	unsigned S_, E_, I_, R_;
 	double beta_;
 	double epsilon_;
 	double mu_;
-	unsigned Enew_, Inew_, Rnew_;
-	bool uninitialized_;
+	PatchID patch_id_;
+	PoolType::Passive S_, R_;
+	PoolType::Active E_, I_;
+	PoolType::Diff Enew_, Inew_, Rnew_;
 public:
-	Patch();
+	Patch(RNGcore * rng, PatchID patch_id, PatchProperties prop);
 	double getRho() const;
 	const Recorder & getRecorder() const;
-	void setProperties(RNGcore * rng, PatchProperties prop);
 	Vec<unsigned> computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const;
-	unsigned sampleInfectors(unsigned Enew) const;
-	void addNewInfections(unsigned Enew);
+	auto sampleInfectors(unsigned Enew) const;
+	void addNewInfections(const PoolType::Diff & Enew);
 	void setNewRecoveries();
 	void setNewOnsets();
 	void update(Time t);
 	bool isEpidemicAlive() const;
 };
 
-Patch::Patch() : uninitialized_(true){}
 
-double Patch::getRho() const{
-	return ((double)(I_)) / N_;
+template<Pool PoolType>
+Patch<PoolType>::Patch(RNGcore * rng, PatchID patch_id, PatchProperties prop) : 
+		rng_(rng), N_(prop.N), beta_(prop.beta), epsilon_(prop.epsilon), mu_(prop.mu), patch_id_(patch_id),
+		S_(patch_id,N_), R_(patch_id),
+		E_(patch_id), I_(patch_id),
+		Enew_(patch_id), Inew_(patch_id), Rnew_(patch_id)
+{
+	Enew_ = S_.generate(prop.I0);
+	Enew_.moveFromTo(S_, E_);
+	if constexpr (std::is_same<PoolType,Individuals>::value){
+		for (auto & i : Enew_.getIndividuals()){
+			rec_.push_tree(Time(0), i.patch_, i.id_, i.infector_patch_, i.infector_id_);
+		}
+	}
+	Enew_.clear();
 }
 
-const Recorder & Patch::getRecorder() const{
+
+template<Pool PoolType>
+double Patch<PoolType>::getRho() const{
+	return I_.getPhi() / N_;
+}
+
+
+template<Pool PoolType>
+const Recorder & Patch<PoolType>::getRecorder() const{
 	return rec_;
 }
 
-void Patch::setProperties(RNGcore * rng, PatchProperties prop){
-	uninitialized_ = false;
-	rng_ = rng;
-	N_ = prop.N;
-	beta_ = prop.beta;
-	epsilon_ = prop.epsilon;
-	mu_ = prop.mu;
-	S_ = N_ - prop.I0; E_ = prop.I0; I_ = 0; R_ = 0;
-	Enew_ = 0; Inew_ = 0; Rnew_ = 0;
-}
 
-Vec<unsigned> Patch::computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const{
+template<Pool PoolType>
+Vec<unsigned> Patch<PoolType>::computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const{
 	Vec<double> probs(rhos.size());
 	std::transform(rhos.begin(), rhos.end(), c_ij.begin(), probs.begin(), std::multiplies<>());
 	double f = beta_ * std::accumulate(probs.begin(), probs.end(), 0.);
-	std::binomial_distribution Binom(S_, f);
+	std::binomial_distribution Binom(S_.size(), f);
 	unsigned Enew = Binom(*rng_);
 	Vec<unsigned> Ninfectors(rhos.size(), 0);
 	std::discrete_distribution Distr(probs.begin(), probs.end());
@@ -64,39 +78,55 @@ Vec<unsigned> Patch::computeInfections(const Vec<double> & rhos, const Vec<doubl
 	return Ninfectors;
 }
 
-unsigned Patch::sampleInfectors(unsigned Enew) const{
-	return Enew;
+
+template<Pool PoolType>
+auto Patch<PoolType>::sampleInfectors(unsigned Ninfectors) const{
+	return I_.sampleWithReplacement(rng_, Ninfectors);
 }
 
-void Patch::addNewInfections(unsigned Enew){
-	Enew_ += Enew;
+
+template<Pool PoolType>
+void Patch<PoolType>::addNewInfections(const PoolType::Diff & Enew){
+	Enew_ += S_.generate(Enew);
 }
 
-void Patch::setNewRecoveries(){
-	std::poisson_distribution Distr(mu_ * I_);
-	Rnew_ = Distr(*rng_);
-	Rnew_ = std::min(I_, Rnew_);
+
+template<Pool PoolType>
+void Patch<PoolType>::setNewRecoveries(){
+	std::binomial_distribution Distr(I_.size(), mu_);
+	unsigned Rnew = Distr(*rng_);
+	Rnew_ = I_.sample(rng_, Rnew);
 }
 
-void Patch::setNewOnsets(){
-	std::poisson_distribution Distr(epsilon_ * E_);
-	Inew_ = Distr(*rng_);
-	Inew_ = std::min(E_, Inew_);
+
+template<Pool PoolType>
+void Patch<PoolType>::setNewOnsets(){
+	std::binomial_distribution Distr(E_.size(), epsilon_);
+	unsigned Inew = Distr(*rng_);
+	Inew_ = E_.sample(rng_, Inew);
 }
 
-void Patch::update(Time t){
-	S_ += - Enew_;
-	E_ += Enew_ - Inew_;
-	I_ += Inew_ - Rnew_;
-	R_ += Rnew_;
-	rec_.push_trajectory(t, S_, E_, I_, R_, Enew_, Inew_);
-	Enew_ = 0;
-	Inew_ = 0;
-	Rnew_ = 0;
+
+template<Pool PoolType>
+void Patch<PoolType>::update(Time t){
+	Rnew_.moveFromTo(I_, R_);
+	Inew_.moveFromTo(E_, I_);
+	Enew_.moveFromTo(S_, E_);
+	rec_.push_trajectory(t, S_.size(), E_.size(), I_.size(), R_.size(), Enew_.size(), Inew_.size());
+	if constexpr (std::is_same<PoolType,Individuals>::value){
+		for (auto & i : Enew_.getIndividuals()){
+			rec_.push_tree(t, i.patch_, i.id_, i.infector_patch_, i.infector_id_);
+		}
+	}
+	Enew_.clear();
+	Inew_.clear();
+	Rnew_.clear();
 }
 
-bool Patch::isEpidemicAlive() const{
-	return E_ + I_;
+
+template<Pool PoolType>
+bool Patch<PoolType>::isEpidemicAlive() const{
+	return E_.size() + I_.size();
 }
 
 #endif

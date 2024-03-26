@@ -4,7 +4,8 @@ SOURCES := $(wildcard src/*.cpp)
 # list of all headers
 HEADERS := $(wildcard src/*.hpp src/*/*.hpp)
 # extension of the modules
-MODULEEXTENSION := $(shell python3-config --extension-suffix)
+MODULEEXTENSION := $(shell python-config --extension-suffix)
+PYTHONRUNTIMELIB := $(shell python-config --ldflags)
 # list of all object files by sostitution of all the *.cpp with *.o
 COMPILEDMODULES := $(patsubst src/%.cpp,TravelAndMutate/%$(MODULEEXTENSION),$(SOURCES))
 # list of module names
@@ -13,11 +14,11 @@ MODULENAMES := $(patsubst src/%.cpp,%,$(SOURCES))
 # compiler directives
 WARNING := -Wall -Wpedantic -Wextra -Wno-sign-compare
 CXX := g++
-CXXFLAGS := -O3 -shared -std=c++17 -fPIC
-INCLUDES := $(shell python3 -m pybind11 --includes) -I$(shell python -c "import numpy; print(numpy.get_include())")
+CXXFLAGS := -O3 -shared -std=c++20 -fPIC -fconcepts-diagnostics-depth=2
+INCLUDES := $(shell python -m pybind11 --includes) -I$(shell python -c "import numpy; print(numpy.get_include())")
 
 
-.PHONY: all install clean $(MODULENAMES)
+.PHONY: all install clean $(MODULENAMES) prova prova2
 
 all: $(COMPILEDMODULES)
 
@@ -33,3 +34,9 @@ install:
 
 clean:
 	rm -f $(COMPILEDMODULES)
+
+prova: 
+	$(CXX) $(WARNING) $(CXXFLAGS) $(INCLUDES) src/tmp/prova.cpp -o TravelAndMutate/prova$(MODULEEXTENSION)
+
+prova2:
+	$(CXX) $(WARNING) -O3 -std=c++20 src/tmp/prova2.cpp -o src/tmp/prova2.x

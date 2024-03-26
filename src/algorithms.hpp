@@ -10,6 +10,7 @@ void eraseWithoutOrder(std::vector<T> & v, unsigned index){
 }
 template<typename T>
 void eraseWithoutOrder(std::vector<T> & v, std::vector<unsigned> indices){
+	std::sort(indices.begin(), indices.end(), std::greater<unsigned>());
 	for (auto i : indices){
 		v[i] = std::move(v.back());
 		v.pop_back();

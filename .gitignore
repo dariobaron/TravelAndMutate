@@ -1,14 +1,22 @@
 # environment directory
 env/
+env
+
+# data directory
+data/
 
 # hidden directories
 .*/
 
+# temporary directories
+tmp/
+
 # python caches
 __pycache__/
 
-# compiled libraries
+# compiled libraries and binaries
 *.so
+*.x
 
 # datasets
 *.csv

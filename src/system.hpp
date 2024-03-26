@@ -8,31 +8,28 @@
 #include "types.hpp"
 #include "randomcore.hpp"
 #include "patch.hpp"
+#include "trees.hpp"
 
+template<Pool PoolType>
 class System{
-
 	RNGcore * rng_;
-	Vec<Patch> patches_;
+	Vec<Patch<PoolType>> patches_;
 	Vec<Vec<double>> c_ij_;
 	Time t_;
-	Time dt_;
-
 public:
-
-	System(RNGcore * rng, Time dt, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties);
-
+	System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties);
 	void spreadForTime(Time tmax);
-
-	auto getFullTrajectory(unsigned i);
-
+	auto getFullTrajectory(unsigned i) const;
+	auto getInfectionTree(unsigned i) const;
+	auto getTreeBalance() const;
 private:
-
 	bool isEpidemicAlive() const;
-
 };
 
-System::System(RNGcore * rng, Time dt, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties) :
-				rng_(rng), patches_(commuting_matrix.shape(0)), t_(0), dt_(dt){
+
+template<Pool PoolType>
+System<PoolType>::System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties) :
+				rng_(rng), t_(0){
 	if (commuting_matrix.ndim() != 2){
 		throw std::runtime_error("Commuting matrix must have 2 dimensions");
 	}
@@ -46,11 +43,13 @@ System::System(RNGcore * rng, Time dt, const np_array<double> & commuting_matrix
 	auto view = commuting_matrix.unchecked<2>();
 	for (unsigned i = 0; i < nPatches; ++i){
 		c_ij_.emplace_back(view.data(i,0), view.data(i,nPatches));
-		patches_[i].setProperties(rng_, properties.at(i));
+		patches_.emplace_back(rng_, i, properties.at(i));
 	}
 }
 
-void System::spreadForTime(Time tmax){
+
+template<Pool PoolType>
+void System<PoolType>::spreadForTime(Time tmax){
 	for (auto & p : patches_){
 		p.update(t_);
 	}
@@ -60,7 +59,7 @@ void System::spreadForTime(Time tmax){
 			rhos[i] = patches_[i].getRho();
 		}
 		for (unsigned i = 0; i < patches_.size(); ++i){
-			auto Ninfectors = patches_[i].computeInfections(rhos, c_ij_[i]);
+			Vec<unsigned> Ninfectors = patches_[i].computeInfections(rhos, c_ij_[i]);
 			for (unsigned j = 0; j < Ninfectors.size(); ++j){
 				auto infectors_ji = patches_[j].sampleInfectors(Ninfectors[j]);
 				patches_[i].addNewInfections(infectors_ji);
@@ -70,18 +69,38 @@ void System::spreadForTime(Time tmax){
 			p.setNewRecoveries();
 			p.setNewOnsets();
 		}
-		t_ += dt_;
+		++t_;
 		for (auto & p : patches_){
 			p.update(t_);
 		}
 	}
 }
 
-auto System::getFullTrajectory(unsigned i){
+
+template<Pool PoolType>
+auto System<PoolType>::getFullTrajectory(unsigned i) const{
 	return patches_[i].getRecorder().getFullTrajectory();
 }
 
-bool System::isEpidemicAlive() const{
+
+template<Pool PoolType>
+auto System<PoolType>::getInfectionTree(unsigned i) const{
+	return patches_[i].getRecorder().getInfectionTree();
+}
+
+
+template<Pool PoolType>
+auto System<PoolType>::getTreeBalance() const{
+	Vec<const Vec<InfecTree> *> trees;
+	for (auto & p : patches_){
+		trees.push_back(&p.getRecorder().tree_);
+	}
+	return treebalanceTree(trees);
+}
+
+
+template<Pool PoolType>
+bool System<PoolType>::isEpidemicAlive() const{
 	bool check = false;
 	for (auto & p : patches_){
 		check = check || p.isEpidemicAlive();

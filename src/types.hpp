@@ -11,8 +11,16 @@ using np_array = py::array_t<T,py::array::c_style>;
 
 using Time = unsigned;
 
+using PatchID = unsigned;
+
 template<typename T>
 using Vec = std::vector<T>;
+
+struct PatchProperties{
+	unsigned N;
+	double beta, epsilon, mu;
+	unsigned I0;
+};
 
 struct FullTraj{
 	Time t;
@@ -21,10 +29,14 @@ struct FullTraj{
 			t(t), S(S), E(E), I(I), R(R), Enew(Enew), Inew(Inew) {}
 };
 
-struct PatchProperties{
-	unsigned N;
-	double beta, epsilon, mu;
-	unsigned I0;
+struct InfecTree{
+	Time t;
+	PatchID loc;
+	unsigned ID;
+	PatchID inf_loc;
+	unsigned inf_ID;
+	InfecTree(Time t, PatchID loc, unsigned ID, PatchID inf_loc, unsigned inf_ID) :
+			t(t), loc(loc), ID(ID), inf_loc(inf_loc), inf_ID(inf_ID) {}
 };
 
 #endif
