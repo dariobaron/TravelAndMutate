@@ -14,7 +14,7 @@ MODULENAMES := $(patsubst src/%.cpp,%,$(SOURCES))
 # compiler directives
 WARNING := -Wall -Wpedantic -Wextra -Wno-sign-compare
 CXX := g++
-CXXFLAGS := -O3 -shared -std=c++20 -fPIC -fconcepts-diagnostics-depth=2
+CXXFLAGS := -O3 -shared -std=c++20 -fPIC -fconcepts-diagnostics-depth=2 -fvisibility=hidden
 INCLUDES := $(shell python -m pybind11 --includes) -I$(shell python -c "import numpy; print(numpy.get_include())")
 
 
