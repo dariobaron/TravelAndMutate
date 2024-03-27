@@ -1,9 +1,9 @@
 #ifndef INDIVPASSIVE_HPP
 #define INDIVPASSIVE_HPP
 
-#include "../types.hpp"
+#include "../../types.hpp"
+#include "../../individual.hpp"
 #include "indivdiff.hpp"
-#include "../individual.hpp"
 
 class IndivPassive{
 private:
@@ -14,8 +14,8 @@ public:
 	friend class IndivDiff;
 	IndivPassive(PatchID patch_id, unsigned n=0);
 	unsigned size() const;
-	IndivDiff generate(unsigned n);
-	IndivDiff generate(const IndivDiff & other);
+	IndivDiff generate(Time, unsigned n);
+	IndivDiff generate(Time, const IndivDiff & other);
 };
 
 IndivPassive::IndivPassive(PatchID patch_id, unsigned n) : patch_id_(patch_id), size_(n), count_(0) {}
@@ -24,7 +24,7 @@ unsigned IndivPassive::size() const{
 	return size_;
 }
 
-IndivDiff IndivPassive::generate(unsigned n){
+IndivDiff IndivPassive::generate(Time, unsigned n){
 	Vec<Individual> v_ind(n);
 	for (auto & i : v_ind){
 		i = Individual(patch_id_, count_);
@@ -33,7 +33,7 @@ IndivDiff IndivPassive::generate(unsigned n){
 	return IndivDiff(patch_id_, v_ind);
 }
 
-IndivDiff IndivPassive::generate(const IndivDiff & other){
+IndivDiff IndivPassive::generate(Time, const IndivDiff & other){
 	Vec<Individual> v_ind(other.size());
 	const Vec<Individual> & infectors = other.getIndividuals();
 	for (unsigned i = 0; i < v_ind.size(); ++i){

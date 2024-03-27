@@ -3,10 +3,10 @@
 
 #include <algorithm>
 #include <random>
-#include "../types.hpp"
-#include "../individual.hpp"
+#include "../../types.hpp"
+#include "../../individual.hpp"
+#include "../../randomcore.hpp"
 #include "indivdiff.hpp"
-#include "../randomcore.hpp"
 
 class IndivActive{
 private:

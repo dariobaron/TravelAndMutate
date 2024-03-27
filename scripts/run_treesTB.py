@@ -45,7 +45,7 @@ def main(working_dir, seed, suppress_output=False):
 		"internals" : treeTB.internals(),
 		"tips" : treeTB.tips()
 	}
-	datman.create_dataset("data/treesTB", params["params_dict"], seed, treeTB.tree(), sim_attrs, suppress_output=suppress_output)
+	datman.create_dataset(working_dir+"treesTB", params["params_dict"], seed, treeTB.tree(), sim_attrs, suppress_output=suppress_output)
 
 	if not suppress_output:
 		print(f"Time elapsed: {round(endtime-starttime, 2)} s")

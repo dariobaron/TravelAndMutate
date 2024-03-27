@@ -1,8 +1,8 @@
 #ifndef INDIVDIFF_HPP
 #define INDIVDIFF_HPP
 
-#include "../types.hpp"
-#include "../individual.hpp"
+#include "../../types.hpp"
+#include "../../individual.hpp"
 
 class IndivPassive;
 class IndivActive;

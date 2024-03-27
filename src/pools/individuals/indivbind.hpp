@@ -1,10 +1,10 @@
 #ifndef INDIVBIND_HPP
 #define INDIVBIND_HPP
 
+#include "../../algorithms.hpp"
 #include "indivactive.hpp"
 #include "indivpassive.hpp"
 #include "indivdiff.hpp"
-#include "../algorithms.hpp"
 
 void IndivDiff::moveFromTo(IndivPassive & source, IndivActive & target) const{
 	target.individuals_.insert(target.individuals_.end(), individuals_.begin(), individuals_.end());
