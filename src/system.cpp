@@ -21,4 +21,12 @@ PYBIND11_MODULE(system, m) {
 		.def("getFullTrajectory", &System<Individuals>::getFullTrajectory)
 		.def("getInfectionTree", &System<Individuals>::getInfectionTree)
 		.def("getTreeBalance", &System<Individuals>::getTreeBalance);
+
+    py::class_<System<Mutations>>(m, "SystemMutations")
+		.def(py::init<RNGcore*,const np_array<double>&,const np_array<PatchProperties>&>(),
+				py::arg("rng_ptr"), py::arg("commuting_matrix"), py::arg("patch_properties"))
+		.def("spreadForTime", &System<Mutations>::spreadForTime)
+		.def("getFullTrajectory", &System<Mutations>::getFullTrajectory)
+		.def("getMutationTree", &System<Mutations>::getMutationTree)
+		.def("setMutationRate", &System<Mutations>::setMutationRate);
 }

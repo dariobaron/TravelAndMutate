@@ -4,23 +4,28 @@
 #include <concepts>
 #include "types.hpp"
 #include "pools/mixpool.hpp"
-#include "pools/indivactive.hpp"
-#include "pools/indivpassive.hpp"
-#include "pools/indivdiff.hpp"
-#include "pools/indivbind.hpp"
+#include "pools/individuals/indivactive.hpp"
+#include "pools/individuals/indivpassive.hpp"
+#include "pools/individuals/indivdiff.hpp"
+#include "pools/individuals/indivbind.hpp"
+#include "pools/mutations/mutactive.hpp"
+#include "pools/mutations/mutpassive.hpp"
+#include "pools/mutations/mutdiff.hpp"
+#include "pools/mutations/mutbind.hpp"
 
 
 template<typename T>
 concept Pool = requires(typename T::Active a,
 						typename T::Passive p,
 						typename T::Diff d,
+						Time t,
 						PatchID pid,
 						unsigned u,
 						double dbl,
 						RNGcore * rng){
 	new T::Passive(pid);		new T::Passive(pid,u);
 	p.size();
-	d = p.generate(u);			d = p.generate(d);
+	d = p.generate(t, u);		d = p.generate(t, d);
 	new T::Active(pid);
 	a.size();
 	{a.getPhi()} -> std::same_as<double>;
@@ -44,6 +49,13 @@ struct Individuals{
 	using Active = IndivActive;
 	using Passive = IndivPassive;
 	using Diff = IndivDiff;
+};
+
+
+struct Mutations{
+	using Active = MutActive;
+	using Passive = MutPassive;
+	using Diff = MutDiff;
 };
 
 #endif

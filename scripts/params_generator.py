@@ -14,9 +14,10 @@ if outputfolder[-1] != "/":
 	outputfolder = outputfolder + "/"
 
 params = {
-	"sys_type" : "individuals",
+	"sys_type" : "mutations",
 	"N_patches" : 10,
 	"t_max" : 10000,
+	"mutation_rate" : 0.00002,
 	"Ns_setter" : "provided",
 	"Ns_params" : [3000,3000,1000,1000,1000,1000,500,500,500,500],
 	"commuting_setter" : "provided",

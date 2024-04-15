@@ -2,7 +2,7 @@
 # list of all modules
 SOURCES := $(wildcard src/*.cpp)
 # list of all headers
-HEADERS := $(wildcard src/*.hpp src/*/*.hpp)
+HEADERS := $(wildcard src/*.hpp src/*/*.hpp src/*/*/*.hpp)
 # extension of the modules
 MODULEEXTENSION := $(shell python-config --extension-suffix)
 PYTHONRUNTIMELIB := $(shell python-config --ldflags)

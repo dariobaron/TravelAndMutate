@@ -22,6 +22,8 @@ public:
 	auto getFullTrajectory(unsigned i) const;
 	auto getInfectionTree(unsigned i) const;
 	auto getTreeBalance() const;
+	auto getMutationTree(unsigned i) const;
+	void setMutationRate(double mut_rate);
 private:
 	bool isEpidemicAlive() const;
 };
@@ -45,6 +47,9 @@ System<PoolType>::System(RNGcore * rng, const np_array<double> & commuting_matri
 		c_ij_.emplace_back(view.data(i,0), view.data(i,nPatches));
 		patches_.emplace_back(rng_, i, properties.at(i));
 	}
+	if constexpr (std::is_same<PoolType,Mutations>::value){
+		PoolType::Passive::allmutations.setRNG(rng_);
+	}
 }
 
 
@@ -62,7 +67,7 @@ void System<PoolType>::spreadForTime(Time tmax){
 			Vec<unsigned> Ninfectors = patches_[i].computeInfections(rhos, c_ij_[i]);
 			for (unsigned j = 0; j < Ninfectors.size(); ++j){
 				auto infectors_ji = patches_[j].sampleInfectors(Ninfectors[j]);
-				patches_[i].addNewInfections(infectors_ji);
+				patches_[i].addNewInfections(t_, infectors_ji);
 			}
 		}
 		for (auto & p : patches_){
@@ -96,6 +101,18 @@ auto System<PoolType>::getTreeBalance() const{
 		trees.push_back(&p.getRecorder().tree_);
 	}
 	return treebalanceTree(trees);
+}
+
+
+template<Pool PoolType>
+auto System<PoolType>::getMutationTree(unsigned i) const{
+	return patches_[i].getRecorder().getMutationTree();
+}
+
+
+template<Pool PoolType>
+void System<PoolType>::setMutationRate(double mut_rate){
+	PoolType::Passive::allmutations.setMutationRate(mut_rate);
 }
 
 

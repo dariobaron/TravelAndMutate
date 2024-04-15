@@ -9,4 +9,6 @@ PYBIND11_MODULE(types, m) {
 	PYBIND11_NUMPY_DTYPE(FullTraj, t, S, E, I, R, Enew, Inew);
 
 	PYBIND11_NUMPY_DTYPE(InfecTree, t, loc, ID, inf_loc, inf_ID);
+
+	PYBIND11_NUMPY_DTYPE(MutTree, t, loc, ID, mut, inf_loc, inf_ID, inf_mut);
 }

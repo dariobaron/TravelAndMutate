@@ -25,7 +25,7 @@ public:
 	const Recorder & getRecorder() const;
 	Vec<unsigned> computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const;
 	auto sampleInfectors(unsigned Enew) const;
-	void addNewInfections(const PoolType::Diff & Enew);
+	void addNewInfections(Time t, const PoolType::Diff & Enew);
 	void setNewRecoveries();
 	void setNewOnsets();
 	void update(Time t);
@@ -40,7 +40,7 @@ Patch<PoolType>::Patch(RNGcore * rng, PatchID patch_id, PatchProperties prop) :
 		E_(patch_id), I_(patch_id),
 		Enew_(patch_id), Inew_(patch_id), Rnew_(patch_id)
 {
-	Enew_ = S_.generate(prop.I0);
+	Enew_ = S_.generate(0, prop.I0);
 	Enew_.moveFromTo(S_, E_);
 	if constexpr (std::is_same<PoolType,Individuals>::value){
 		for (auto & i : Enew_.getIndividuals()){
@@ -86,8 +86,8 @@ auto Patch<PoolType>::sampleInfectors(unsigned Ninfectors) const{
 
 
 template<Pool PoolType>
-void Patch<PoolType>::addNewInfections(const PoolType::Diff & Enew){
-	Enew_ += S_.generate(Enew);
+void Patch<PoolType>::addNewInfections(Time t, const PoolType::Diff & Enew){
+	Enew_ += S_.generate(t, Enew);
 }
 
 
@@ -116,6 +116,17 @@ void Patch<PoolType>::update(Time t){
 	if constexpr (std::is_same<PoolType,Individuals>::value){
 		for (auto & i : Enew_.getIndividuals()){
 			rec_.push_tree(t, i.patch_, i.id_, i.infector_patch_, i.infector_id_);
+		}
+	}
+	if constexpr (std::is_same<PoolType,Mutations>::value){
+		for (auto & i : I_.getHosts()){
+			if (t >= i.t_next_mut_){
+				Time tnext = t + PoolType::Passive::allmutations.nextMutation();
+				i.evolveMutation(t, PoolType::Passive::allmutations.newMutation(), tnext);
+			}
+		}
+		for (auto & i : Enew_.getHosts()){
+			rec_.push_host(t, i.patch_, i.id_, i.mut_, i.infector_patch_, i.infector_id_, i.infector_mut_);
 		}
 	}
 	Enew_.clear();

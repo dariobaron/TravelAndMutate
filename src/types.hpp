@@ -39,4 +39,16 @@ struct InfecTree{
 			t(t), loc(loc), ID(ID), inf_loc(inf_loc), inf_ID(inf_ID) {}
 };
 
+struct MutTree{
+	Time t;
+	PatchID loc;
+	unsigned ID;
+	unsigned mut;
+	PatchID inf_loc;
+	unsigned inf_ID;
+	unsigned inf_mut;
+	MutTree(Time t, PatchID loc, unsigned ID, unsigned mut, PatchID inf_loc, unsigned inf_ID, unsigned inf_mut) : 
+			t(t), loc(loc), ID(ID), mut(mut), inf_loc(inf_loc), inf_ID(inf_ID), inf_mut(inf_mut) {}
+};
+
 #endif

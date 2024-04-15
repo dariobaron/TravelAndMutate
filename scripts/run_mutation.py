@@ -6,11 +6,11 @@ import json
 import time
 import pandas as pd
 import numpy as np
+from numpy.lib import recfunctions
 from argparse import ArgumentParser
 from TravelAndMutate.paramsmanager import Params
 from TravelAndMutate.randominterface import NumpyRandomGenerator
-from TravelAndMutate.system import SystemIndividuals as System
-from TravelAndMutate.trees import TreeBalanceProxy
+from TravelAndMutate.system import SystemMutations as System
 import TravelAndMutate.datamanager as datman
 
 def main(working_dir, seed, suppress_output=False):
@@ -32,20 +32,25 @@ def main(working_dir, seed, suppress_output=False):
 	patch_params["I0"] = params["I0"].astype("u4")
 
 	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False))
+	system.setMutationRate(params["mutation_rate"])
 
 	starttime = time.time()
 	system.spreadForTime(params["t_max"])
 	endtime = time.time()
 
-	treeTB = system.getTreeBalance()
+	mutations = recfunctions.stack_arrays(
+		[system.getMutationTree(i) for i in range(params["N_patches"])],
+		defaults=None, usemask=False, asrecarray=True, autoconvert=False
+	)
+	mutations.sort(order="t")
+
+	print(system.getMutationTree(0))
 
 	sim_attrs = {
 		"seed" : seed,
 		"exec_time" : endtime - starttime,
-		"internals" : treeTB.internals(),
-		"tips" : treeTB.tips()
 	}
-	datman.create_dataset(working_dir+"treesTB", params["params_dict"], seed, treeTB.tree(), sim_attrs, suppress_output=suppress_output)
+	datman.create_dataset(working_dir+"mutation", params["params_dict"], seed, mutations, sim_attrs, suppress_output=suppress_output)
 
 	if not suppress_output:
 		print(f"Time elapsed: {round(endtime-starttime, 2)} s")

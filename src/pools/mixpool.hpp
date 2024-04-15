@@ -13,8 +13,8 @@ public:
 	unsigned size() const;
 	double getPhi() const;
 	MixPool& operator+=(const MixPool & other);
-	MixPool generate(unsigned n);
-	MixPool generate(const MixPool & other);
+	MixPool generate(Time, unsigned n);
+	MixPool generate(Time, const MixPool & other);
 	MixPool sample(RNGcore *, unsigned n) const;
 	MixPool sampleWithReplacement(RNGcore *, unsigned n) const;
 	void moveFromTo(MixPool & source, MixPool & target) const;
@@ -36,11 +36,11 @@ MixPool& MixPool::operator+=(const MixPool & other){
 	return *this;
 }
 
-MixPool MixPool::generate(unsigned n){
+MixPool MixPool::generate(Time, unsigned n){
 	return MixPool(patch_id_,n);
 }
 
-MixPool MixPool::generate(const MixPool & other){
+MixPool MixPool::generate(Time, const MixPool & other){
 	return other;
 }
 
