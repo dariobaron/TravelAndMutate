@@ -11,6 +11,9 @@ data/
 # temporary directories
 tmp/
 
+# raw data
+raw/
+
 # python caches
 __pycache__/
 
