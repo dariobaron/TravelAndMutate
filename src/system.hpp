@@ -16,8 +16,10 @@ class System{
 	Vec<Patch<PoolType>> patches_;
 	Vec<Vec<double>> c_ij_;
 	Time t_;
+	bool verbose;
 public:
 	System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties);
+	void setVerbosity();
 	void spreadForTime(Time tmax);
 	auto getFullTrajectory(unsigned i) const;
 	auto getInfectionTree(unsigned i) const;
@@ -31,7 +33,7 @@ private:
 
 template<Pool PoolType>
 System<PoolType>::System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties) :
-				rng_(rng), t_(0){
+				rng_(rng), t_(0), verbose(false) {
 	if (commuting_matrix.ndim() != 2){
 		throw std::runtime_error("Commuting matrix must have 2 dimensions");
 	}
@@ -41,15 +43,21 @@ System<PoolType>::System(RNGcore * rng, const np_array<double> & commuting_matri
 	if (commuting_matrix.shape(0) != properties.shape(0)){
 		throw std::runtime_error("Shape of commuting matrix and properties must match");
 	}
+	if constexpr (std::is_same<PoolType,Mutations>::value){
+		PoolType::Passive::allmutations.setRNG(rng_);
+	}
 	unsigned nPatches = commuting_matrix.shape(0);
 	auto view = commuting_matrix.unchecked<2>();
 	for (unsigned i = 0; i < nPatches; ++i){
 		c_ij_.emplace_back(view.data(i,0), view.data(i,nPatches));
 		patches_.emplace_back(rng_, i, properties.at(i));
 	}
-	if constexpr (std::is_same<PoolType,Mutations>::value){
-		PoolType::Passive::allmutations.setRNG(rng_);
-	}
+}
+
+
+template<Pool PoolType>
+void System<PoolType>::setVerbosity(){
+	verbose = true;
 }
 
 
@@ -78,6 +86,12 @@ void System<PoolType>::spreadForTime(Time tmax){
 		for (auto & p : patches_){
 			p.update(t_);
 		}
+		if (verbose){
+			py::print("Simulation at time =", t_, py::arg("end")="\r", py::arg("flush")=true);
+		}
+	}
+	if (verbose){
+		py::print("Simulation terminated at time =", t_, py::arg("flush")=true);
 	}
 }
 

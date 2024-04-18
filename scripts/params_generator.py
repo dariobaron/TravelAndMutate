@@ -15,22 +15,13 @@ if outputfolder[-1] != "/":
 
 params = {
 	"sys_type" : "mutations",
-	"N_patches" : 10,
+	"N_patches" : 107,
 	"t_max" : 10000,
 	"mutation_rate" : 0.00002,
-	"Ns_setter" : "provided",
-	"Ns_params" : [3000,3000,1000,1000,1000,1000,500,500,500,500],
-	"commuting_setter" : "provided",
-	"commuting_params" : [[1.0, 0.001, 0.01, 0.01, 0.01, 0.01, 0.0, 0.0, 0.0, 0.0],
- [0.001, 1.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, 0.1],
- [0.01, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
- [0.01, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
- [0.01, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
- [0.01, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
- [0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
- [0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
- [0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
- [0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]],
+	"Ns_setter" : "fromcsv",
+	"Ns_params" : "inputparams/Ns/italy.csv",
+	"commuting_setter" : "gravity",
+	"commuting_params" : [1e-2, 0.46, 0.64, 82, "inputparams/distances/italy.csv"],
 	"betas_setter" : "delta",
 	"betas_params" : 0.02,
 	"epsilons_setter" : "delta",
@@ -38,7 +29,7 @@ params = {
 	"mus_setter" : "delta",
 	"mus_params" : 0.01,
 	"I0_setter" : "onehot",
-	"I0_params" : [0,1]
+	"I0_params" : [27,1]
 }
 
 with open(outputfolder+"params.json", "w") as outfile:

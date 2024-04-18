@@ -13,7 +13,7 @@ from TravelAndMutate.randominterface import NumpyRandomGenerator
 from TravelAndMutate.system import SystemMutations as System
 import TravelAndMutate.datamanager as datman
 
-def main(working_dir, seed, suppress_output=False):
+def main(working_dir, filename, seed, suppress_output=False):
 
 	if not working_dir[-1] == "/":
 		working_dir = working_dir + "/"
@@ -22,7 +22,7 @@ def main(working_dir, seed, suppress_output=False):
 		params_dict = json.load(paramfile)
 
 	random_engine = NumpyRandomGenerator(seed)
-
+	
 	params = Params(params_dict, random_engine.rng).__dict__
 	patch_params = pd.DataFrame()
 	patch_params["N"] = params["Ns"].astype("u4")
@@ -33,33 +33,38 @@ def main(working_dir, seed, suppress_output=False):
 
 	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False))
 	system.setMutationRate(params["mutation_rate"])
+	if not suppress_output:
+		system.setVerbosity()
 
 	starttime = time.time()
 	system.spreadForTime(params["t_max"])
-	endtime = time.time()
+	simulationtime = time.time() - starttime
 
+	starttime = time.time()
 	mutations = recfunctions.stack_arrays(
 		[system.getMutationTree(i) for i in range(params["N_patches"])],
 		defaults=None, usemask=False, asrecarray=True, autoconvert=False
 	)
 	mutations.sort(order="t")
 
-	print(system.getMutationTree(0))
-
 	sim_attrs = {
 		"seed" : seed,
-		"exec_time" : endtime - starttime,
+		"exec_time" : simulationtime
 	}
-	datman.create_dataset(working_dir+"mutation", params["params_dict"], seed, mutations, sim_attrs, suppress_output=suppress_output)
+	datman.create_dataset(working_dir+filename, params, seed, mutations, sim_attrs, suppress_output=suppress_output)
+	storingtime = time.time() - starttime
 
 	if not suppress_output:
-		print(f"Time elapsed: {round(endtime-starttime, 2)} s")
+		print(f"Time elapsed simulating: {round(simulationtime, 2)} s")
+		print(f"Time elapsed storing data: {round(storingtime, 2)} s")
 
 if __name__ == "__main__":
 	parser = ArgumentParser(allow_abbrev=False)
 	parser.add_argument("--dir", type=str, required=True)
+	parser.add_argument("--name", type=str, required=True)
 	parser.add_argument("--seed", type=int, required=True)
 	args = parser.parse_args()
 	working_dir = args.dir
+	filename = args.name
 	seed = args.seed
-	main(working_dir, seed)
+	main(working_dir, filename, seed)

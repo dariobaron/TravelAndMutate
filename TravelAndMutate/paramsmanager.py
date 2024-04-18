@@ -7,9 +7,6 @@ class Params:
 		# dummy inits
 		self.N_patches = 0
 		self.Ns = []
-		# general parameters
-		self.params_dict = params_dict
-		self.rng = rng
 		# single-valued parameters
 		updater = {key:val for key,val in params_dict.items() if "_setter" not in key and "_params" not in key}
 		self.__dict__.update(updater)
@@ -21,9 +18,9 @@ class Params:
 		### manually imposing precedence on dependent parameters
 		updater = {}
 		try:
-			updater["Ns"] = getattr(self, setter_parameters["Ns"])(*params_parameters["Ns"])
+			updater["Ns"] = getattr(self, setter_parameters["Ns"])(rng, *params_parameters["Ns"])
 		except:
-			updater["Ns"] = getattr(self, setter_parameters["Ns"])(params_parameters["Ns"])
+			updater["Ns"] = getattr(self, setter_parameters["Ns"])(rng, params_parameters["Ns"])
 		self.__dict__.update(updater)
 		### updating all the other parameters
 		updater = {}
@@ -32,26 +29,27 @@ class Params:
 				continue
 			func = getattr(self, val)
 			try:
-				updater[key] = func(*params_parameters[key])
+				updater[key] = func(rng, *params_parameters[key])
 			except:
-				updater[key] = func(params_parameters[key])
+				updater[key] = func(rng, params_parameters[key])
 		self.__dict__.update(updater)
 
-	def provided(self, *values):
+
+	def provided(self, rng, *values):
 		return np.array(values)
 	
-	def delta(self, value):
+	def delta(self, rng, value):
 		return np.full(self.N_patches, value)
 	
-	def onehot(self, idx, value):
+	def onehot(self, rng, idx, value):
 		arr = np.zeros(self.N_patches)
 		arr[idx] = value
 		return arr
 
-	def fromcsv(self, filename):
+	def fromcsv(self, rng, filename):
 		return pd.read_csv(filename).to_numpy().squeeze()
 	
-	def fromh5(self, filename, pathtodataset):
+	def fromh5(self, rng, filename, pathtodataset):
 		with h5py.File(filename, "r") as inputfile:
 			values = inputfile[pathtodataset]
 			if isinstance(values, h5py.Dataset):
@@ -60,8 +58,8 @@ class Params:
 				raise RuntimeError(f"{pathtodataset} in H5File {filename} is not a dataset")
 		return values
 
-	def gravity(self, scale, alpha, gamma, r, file_of_distances):
-		dist = self.fromcsv(file_of_distances)
+	def gravity(self, rng, scale, alpha, gamma, r, file_of_distances):
+		dist = self.fromcsv(rng, file_of_distances)
 		c_ij = np.empty((self.N_patches,self.N_patches))
 		for i in range(self.N_patches):
 			for j in range(self.N_patches):
