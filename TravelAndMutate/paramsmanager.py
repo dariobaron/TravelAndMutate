@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import h5py
 
 class Params:
@@ -47,26 +48,31 @@ class Params:
 		arr[idx] = value
 		return arr
 
-	def fromtxt(self, filename):
-		return np.loadtxt(filename)
+	def fromcsv(self, filename):
+		return pd.read_csv(filename).to_numpy().squeeze()
 	
 	def fromh5(self, filename, pathtodataset):
 		with h5py.File(filename, "r") as inputfile:
 			values = inputfile[pathtodataset]
+			if isinstance(values, h5py.Dataset):
+				values = values[:]
+			else:
+				raise RuntimeError(f"{pathtodataset} in H5File {filename} is not a dataset")
 		return values
 
-	def gravity(self, scale, alpha, gamma, r, file_of_position):
-		pos = self.fromtxt(file_of_position)
+	def gravity(self, scale, alpha, gamma, r, file_of_distances):
+		dist = self.fromcsv(file_of_distances)
 		c_ij = np.empty((self.N_patches,self.N_patches))
 		for i in range(self.N_patches):
 			for j in range(self.N_patches):
 				if i == j:
 					c_ij[i,j] = 1
 				else:
-					c_ij[i,j] = self.Ns[j]**gamma * self.Ns[i]**(alpha-1) / np.exp(1/r*np.linalg.norm(pos[i]-pos[j]))
+					c_ij[i,j] = self.Ns[j]**gamma * self.Ns[i]**(alpha-1) / np.exp(1/r*dist[i,j])
 		outdiagmean = (np.sum(c_ij) - np.sum(np.diag(c_ij))) / (self.N_patches - 1)**2
 		for i in range(self.N_patches):
 			for j in range(self.N_patches):
-				c_ij[i,j] = c_ij[i,j] / outdiagmean * scale
+				if i != j:
+					c_ij[i,j] = c_ij[i,j] / outdiagmean * scale
 		return c_ij
 	
