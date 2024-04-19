@@ -32,6 +32,7 @@ def main(working_dir, seed, suppress_output=False):
 	patch_params["I0"] = params["I0"].astype("u4")
 
 	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False))
+	system.seedEpidemic()
 
 	starttime = time.time()
 	system.spreadForTime(params["t_max"])

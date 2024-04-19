@@ -33,6 +33,7 @@ def main(working_dir, filename, seed, suppress_output=False):
 
 	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False))
 	system.setMutationRate(params["mutation_rate"])
+	system.seedEpidemic()
 	if not suppress_output:
 		system.setVerbosity()
 
@@ -63,8 +64,10 @@ if __name__ == "__main__":
 	parser.add_argument("--dir", type=str, required=True)
 	parser.add_argument("--name", type=str, required=True)
 	parser.add_argument("--seed", type=int, required=True)
+	parser.add_argument("--suppressoutput", type=bool, default=False)
 	args = parser.parse_args()
 	working_dir = args.dir
 	filename = args.name
 	seed = args.seed
-	main(working_dir, filename, seed)
+	suppress_output = args.suppressoutput
+	main(working_dir, filename, seed, suppress_output)

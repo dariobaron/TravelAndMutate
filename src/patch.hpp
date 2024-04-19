@@ -15,6 +15,7 @@ class Patch{
 	double beta_;
 	double epsilon_;
 	double mu_;
+	unsigned I0_;
 	PatchID patch_id_;
 	PoolType::Passive S_, R_;
 	PoolType::Active E_, I_;
@@ -23,6 +24,7 @@ public:
 	Patch(RNGcore * rng, PatchID patch_id, PatchProperties prop);
 	double getRho() const;
 	const Recorder & getRecorder() const;
+	void seedEpidemic();
 	Vec<unsigned> computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const;
 	auto sampleInfectors(unsigned Enew) const;
 	void addNewInfections(Time t, const PoolType::Diff & Enew);
@@ -35,20 +37,10 @@ public:
 
 template<Pool PoolType>
 Patch<PoolType>::Patch(RNGcore * rng, PatchID patch_id, PatchProperties prop) : 
-		rng_(rng), N_(prop.N), beta_(prop.beta), epsilon_(prop.epsilon), mu_(prop.mu), patch_id_(patch_id),
+		rng_(rng), N_(prop.N), beta_(prop.beta), epsilon_(prop.epsilon), mu_(prop.mu), I0_(prop.I0), patch_id_(patch_id),
 		S_(patch_id,N_), R_(patch_id),
 		E_(patch_id), I_(patch_id),
-		Enew_(patch_id), Inew_(patch_id), Rnew_(patch_id)
-{
-	Enew_ = S_.generate(0, prop.I0);
-	Enew_.moveFromTo(S_, E_);
-	if constexpr (std::is_same<PoolType,Individuals>::value){
-		for (auto & i : Enew_.getIndividuals()){
-			rec_.push_tree(Time(0), i.patch_, i.id_, i.infector_patch_, i.infector_id_);
-		}
-	}
-	Enew_.clear();
-}
+		Enew_(patch_id), Inew_(patch_id), Rnew_(patch_id){}
 
 
 template<Pool PoolType>
@@ -60,6 +52,24 @@ double Patch<PoolType>::getRho() const{
 template<Pool PoolType>
 const Recorder & Patch<PoolType>::getRecorder() const{
 	return rec_;
+}
+
+
+template<Pool PoolType>
+void Patch<PoolType>::seedEpidemic(){
+	Enew_ = S_.generate(0, I0_);
+	if constexpr (std::is_same<PoolType,Individuals>::value){
+		for (auto & i : Enew_.getIndividuals()){
+			rec_.push_tree(Time(0), i.patch_, i.id_, i.infector_patch_, i.infector_id_);
+		}
+	}
+	if constexpr (std::is_same<PoolType,Mutations>::value){
+		for (auto & i : Enew_.getHosts()){
+			rec_.push_host(Time(0), i.patch_, i.id_, i.mut_, i.infector_patch_, i.infector_id_, i.infector_mut_);
+		}
+	}
+	Enew_.moveFromTo(S_, E_);
+	Enew_.clear();
 }
 
 
@@ -122,7 +132,8 @@ void Patch<PoolType>::update(Time t){
 		for (auto & i : I_.getHosts()){
 			if (t >= i.t_next_mut_){
 				Time tnext = t + PoolType::Passive::allmutations.nextMutation();
-				i.evolveMutation(t, PoolType::Passive::allmutations.newMutation(), tnext);
+				unsigned newmut = PoolType::Passive::allmutations.newMutation();
+				i.evolveMutation(t, newmut, tnext);
 			}
 		}
 		for (auto & i : Enew_.getHosts()){

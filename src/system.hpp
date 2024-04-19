@@ -20,6 +20,7 @@ class System{
 public:
 	System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties);
 	void setVerbosity();
+	void seedEpidemic();
 	void spreadForTime(Time tmax);
 	auto getFullTrajectory(unsigned i) const;
 	auto getInfectionTree(unsigned i) const;
@@ -62,6 +63,14 @@ void System<PoolType>::setVerbosity(){
 
 
 template<Pool PoolType>
+void System<PoolType>::seedEpidemic(){
+	for (auto & p : patches_){
+		p.seedEpidemic();
+	}
+}
+
+
+template<Pool PoolType>
 void System<PoolType>::spreadForTime(Time tmax){
 	for (auto & p : patches_){
 		p.update(t_);
@@ -87,11 +96,11 @@ void System<PoolType>::spreadForTime(Time tmax){
 			p.update(t_);
 		}
 		if (verbose){
-			py::print("Simulation at time =", t_, py::arg("end")="\r", py::arg("flush")=true);
+			py::print("Simulation at step", t_, py::arg("end")="\r", py::arg("flush")=true);
 		}
 	}
 	if (verbose){
-		py::print("Simulation terminated at time =", t_, py::arg("flush")=true);
+		py::print("Simulation finished in", t_, "steps", py::arg("flush")=true);
 	}
 }
 
