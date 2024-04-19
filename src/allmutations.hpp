@@ -16,7 +16,7 @@ private:
 	double mr_;
 	Vec<SeqType> seqs_;
 	Vec<double> phi_h_;
-	std::poisson_distribution<> mut_period_;
+	std::gamma_distribution<> mut_period_;
 public:
 	const SeqType& getSequence(unsigned i) const;
 	double getMutationRate() const;
@@ -46,7 +46,11 @@ void AllMutations::setRNG(RNGcore * rng){
 
 void AllMutations::setMutationRate(double mr){
 	mr_ = mr;
-	mut_period_ = std::poisson_distribution<>(1 / mr_);
+	// gamma distribution arbitrarily chosen
+	// parametrized with: mean = k * theta, and: variance = k * theta^2
+	double k = 10; // arbitrarily chosen to preserve the shape
+	double theta = 1 / mr_ / k;
+	mut_period_ = std::gamma_distribution<>(k, theta);
 }
 
 unsigned AllMutations::newMutation(){
