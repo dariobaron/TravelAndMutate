@@ -47,10 +47,14 @@ def create_dataset(filename, params_dict, seed, values, sim_attrs={}, suppress_o
 			print(f"WARNING: overwriting dataset {groupname} with seed {seed}")
 	with h5py.File(outfilename, "w") as datafile:
 		group = datafile.create_group(groupname, track_order=True)
+		if not suppress_output:
+			print("Writing attributes...", flush=True, end="\r")
 		attributes = group.attrs
 		for key,val in params_dict.items():
 			attributes.create(key,val)
 		datasetname = f"seed-{seed:05d}"
+		if not suppress_output:
+			print("Writing dataset...", flush=True, end="\r")
 		dataset = group.create_dataset(datasetname, data=values, compression="gzip", compression_opts=9)
 		for key,val in sim_attrs.items():
 			dataset.attrs.create(key,val)					
