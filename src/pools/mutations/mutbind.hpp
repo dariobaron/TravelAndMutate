@@ -7,20 +7,17 @@
 #include "mutdiff.hpp"
 
 void MutDiff::moveFromTo(MutPassive & source, MutActive & target) const{
-	target.hosts_.insert(target.hosts_.end(), hosts_.begin(), hosts_.end());
+	target.hosts_[0].insert(target.hosts_[0].end(), hosts_.begin(), hosts_.end());
 	source.size_ -= hosts_.size();
 }
 
 void MutDiff::moveFromTo(MutActive & source, MutActive & target) const{
-	for (auto i : indices_){
-		target.hosts_.push_back(std::move(source.hosts_[i]));
-	}
-	eraseWithoutOrder(source.hosts_, indices_);
+	appendToEraseFromByIndices(target.hosts_[0], source.hosts_.back(), indices_);
 }
 
 void MutDiff::moveFromTo(MutActive & source, MutPassive & target) const{
 	target.size_ += indices_.size();
-	eraseWithoutOrder(source.hosts_, indices_);
+	eraseWithoutOrder(source.hosts_.back(), indices_);
 }
 
 #endif

@@ -18,7 +18,7 @@ class System{
 	Time t_;
 	bool verbose;
 public:
-	System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties);
+	System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties, unsigned gamma_trick);
 	void setVerbosity();
 	void seedEpidemic();
 	void spreadForTime(Time tmax);
@@ -33,7 +33,7 @@ private:
 
 
 template<Pool PoolType>
-System<PoolType>::System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties) :
+System<PoolType>::System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties, unsigned gamma_trick) :
 				rng_(rng), t_(0), verbose(false) {
 	if (commuting_matrix.ndim() != 2){
 		throw std::runtime_error("Commuting matrix must have 2 dimensions");
@@ -51,7 +51,7 @@ System<PoolType>::System(RNGcore * rng, const np_array<double> & commuting_matri
 	auto view = commuting_matrix.unchecked<2>();
 	for (unsigned i = 0; i < nPatches; ++i){
 		c_ij_.emplace_back(view.data(i,0), view.data(i,nPatches));
-		patches_.emplace_back(rng_, i, properties.at(i));
+		patches_.emplace_back(rng_, i, gamma_trick, properties.at(i));
 	}
 }
 

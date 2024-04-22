@@ -23,13 +23,17 @@ concept Pool = requires(typename T::Active a,
 						unsigned u,
 						double dbl,
 						RNGcore * rng){
+	// Passive
 	new T::Passive(pid);		new T::Passive(pid,u);
 	p.size();
 	d = p.generate(t, u);		d = p.generate(t, d);
-	new T::Active(pid);
+	// Active
+	new T::Active(pid, u, dbl);
 	a.size();
 	{a.getPhi()} -> std::same_as<double>;
-	d = a.sample(rng, u);		d = a.sampleWithReplacement(rng, u);
+	d = a.getNewErased(rng);		d = a.sampleInfectors(rng, u);
+	a.shift(rng);
+	// Diff
 	new T::Diff(pid);
 	d.size();
 	d += d;
