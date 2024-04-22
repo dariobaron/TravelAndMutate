@@ -6,51 +6,89 @@
 #include "../../types.hpp"
 #include "../../host.hpp"
 #include "../../randomcore.hpp"
+#include "../../algorithms.hpp"
 #include "mutdiff.hpp"
 
 class MutActive{
 private:
-	PatchID patch_id_;
-	Vec<Host> hosts_;
+	const PatchID patch_id_;
+	const double rate_;
+	Vec<Vec<Host>> hosts_;
 public:
 	friend class MutDiff;
-	MutActive(PatchID patch_id);
+	MutActive(PatchID patch_id, unsigned gamma_trick, double rate);
 	unsigned size() const;
 	double getPhi() const;
-	Vec<Host>& getHosts();
-	MutDiff sample(RNGcore * rng, unsigned n) const;
-	MutDiff sampleWithReplacement(RNGcore * rng, unsigned n) const;
+	Vec<Vec<Host>>& getHosts();
+	void shift(RNGcore * rng);
+	MutDiff getNewErased(RNGcore * rng) const;
+	MutDiff sampleInfectors(RNGcore * rng, unsigned n) const;
 };
 
-MutActive::MutActive(PatchID patch_id) : patch_id_(patch_id) {}
+MutActive::MutActive(PatchID patch_id, unsigned gamma_trick, double rate) : patch_id_(patch_id), rate_(rate), hosts_(gamma_trick) {}
 
 unsigned MutActive::size() const{
-	return hosts_.size();
+	unsigned size = 0;
+	for (auto & h : hosts_){
+		size += h.size();
+	}
+	return size;
 }
 
 double MutActive::getPhi() const{
-	return hosts_.size();
+	unsigned phi = 0;
+	for (auto & h : hosts_){
+		phi += h.size();
+	}
+	return phi;
 }
 
-Vec<Host>& MutActive::getHosts(){
+Vec<Vec<Host>>& MutActive::getHosts(){
 	return hosts_;
 }
 
-MutDiff MutActive::sample(RNGcore * rng, unsigned n) const{
-	n = std::min(static_cast<unsigned>(hosts_.size()), n);
-	Vec<unsigned> all_indices(hosts_.size());
-	std::iota(all_indices.begin(), all_indices.end(), 0);
-	Vec<unsigned> indices(n);
-	std::sample(all_indices.begin(), all_indices.end(), indices.begin(), n, rng->get());
+void MutActive::shift(RNGcore * rng){
+	if (hosts_.size() > 1){
+		for (int i = hosts_.size()-2; i >= 0; --i){
+			std::binomial_distribution Distr(hosts_[i].size(), rate_);
+			unsigned n = Distr(*rng);
+			Vec<unsigned> indices = sampleIndices(rng->get(), hosts_[i].size(), n);
+			appendToEraseFromByIndices(hosts_[i+1], hosts_[i], indices);
+		}
+	}
+}
+
+MutDiff MutActive::getNewErased(RNGcore * rng) const{
+	unsigned size = hosts_.back().size();
+	std::binomial_distribution Distr(size, rate_);
+	unsigned n = Distr(*rng);
+	Vec<unsigned> indices = sampleIndices(rng->get(), size, n);
 	return MutDiff(patch_id_, indices);
 }
 
-MutDiff MutActive::sampleWithReplacement(RNGcore * rng, unsigned n) const{
-	std::uniform_int_distribution<unsigned> Distr(0, hosts_.size()-1);
-	Vec<Host> sampled(n);
-	for (auto & s : sampled){
-		s = hosts_[Distr(rng->get())];
+MutDiff MutActive::sampleInfectors(RNGcore * rng, unsigned n) const{
+	unsigned tot_hosts = 0;
+	for (auto & h : hosts_){
+		tot_hosts += h.size();
 	}
+	Vec<unsigned> indices = sampleIndicesWithReplacement(rng->get(), tot_hosts, n);
+	std::sort(indices.begin(), indices.end());
+	Vec<Host> sampled(n);
+	unsigned compartment = 0;
+	unsigned prev_occupants = 0;
+	for (unsigned i = 0; i < n; ++i){
+		while (indices[i] >= prev_occupants + hosts_[compartment].size()){
+			prev_occupants += hosts_[compartment].size();
+			++compartment;
+			/////////////////////////
+			if (compartment == hosts_.size()){
+				throw std::runtime_error("Error in sampleWithReplacement: too many advancements in compartments");
+			}
+			/////////////////////////
+		}
+		sampled[i] = hosts_[compartment][indices[i]-prev_occupants];
+	}
+	std::shuffle(sampled.begin(), sampled.end(), rng->get());
 	return MutDiff(patch_id_, sampled);
 }
 

@@ -18,6 +18,7 @@ params = {
 	"N_patches" : 107,
 	"t_max" : 10000,
 	"mutation_rate" : 0.005,
+	"gamma_trick" : 3,
 	"Ns_setter" : "fromcsv",
 	"Ns_params" : "inputparams/Ns/italy_small.csv",
 	"commuting_setter" : "gravity",

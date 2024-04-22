@@ -31,7 +31,7 @@ def main(working_dir, seed, suppress_output=False):
 	patch_params["mu"] = params["mus"]
 	patch_params["I0"] = params["I0"].astype("u4")
 
-	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False))
+	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False), params["gamma_trick"])
 	system.seedEpidemic()
 
 	starttime = time.time()

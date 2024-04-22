@@ -21,7 +21,7 @@ class Patch{
 	PoolType::Active E_, I_;
 	PoolType::Diff Enew_, Inew_, Rnew_;
 public:
-	Patch(RNGcore * rng, PatchID patch_id, PatchProperties prop);
+	Patch(RNGcore * rng, PatchID patch_id, unsigned gamma_trick, PatchProperties prop);
 	double getRho() const;
 	const Recorder & getRecorder() const;
 	void seedEpidemic();
@@ -36,10 +36,10 @@ public:
 
 
 template<Pool PoolType>
-Patch<PoolType>::Patch(RNGcore * rng, PatchID patch_id, PatchProperties prop) : 
-		rng_(rng), N_(prop.N), beta_(prop.beta), epsilon_(prop.epsilon), mu_(prop.mu), I0_(prop.I0), patch_id_(patch_id),
+Patch<PoolType>::Patch(RNGcore * rng, PatchID patch_id, unsigned gamma_trick, PatchProperties prop) : 
+		rng_(rng), N_(prop.N), beta_(prop.beta), epsilon_(gamma_trick*prop.epsilon), mu_(gamma_trick*prop.mu), I0_(prop.I0), patch_id_(patch_id),
 		S_(patch_id,N_), R_(patch_id),
-		E_(patch_id), I_(patch_id),
+		E_(patch_id, gamma_trick, epsilon_), I_(patch_id, gamma_trick, mu_),
 		Enew_(patch_id), Inew_(patch_id), Rnew_(patch_id){}
 
 
@@ -91,7 +91,7 @@ Vec<unsigned> Patch<PoolType>::computeInfections(const Vec<double> & rhos, const
 
 template<Pool PoolType>
 auto Patch<PoolType>::sampleInfectors(unsigned Ninfectors) const{
-	return I_.sampleWithReplacement(rng_, Ninfectors);
+	return I_.sampleInfectors(rng_, Ninfectors);
 }
 
 
@@ -103,24 +103,22 @@ void Patch<PoolType>::addNewInfections(Time t, const PoolType::Diff & Enew){
 
 template<Pool PoolType>
 void Patch<PoolType>::setNewRecoveries(){
-	std::binomial_distribution Distr(I_.size(), mu_);
-	unsigned Rnew = Distr(*rng_);
-	Rnew_ = I_.sample(rng_, Rnew);
+	Rnew_ = I_.getNewErased(rng_);
 }
 
 
 template<Pool PoolType>
 void Patch<PoolType>::setNewOnsets(){
-	std::binomial_distribution Distr(E_.size(), epsilon_);
-	unsigned Inew = Distr(*rng_);
-	Inew_ = E_.sample(rng_, Inew);
+	Inew_ = E_.getNewErased(rng_);
 }
 
 
 template<Pool PoolType>
 void Patch<PoolType>::update(Time t){
 	Rnew_.moveFromTo(I_, R_);
+	I_.shift(rng_);
 	Inew_.moveFromTo(E_, I_);
+	E_.shift(rng_);
 	Enew_.moveFromTo(S_, E_);
 	rec_.push_trajectory(t, S_.size(), E_.size(), I_.size(), R_.size(), Enew_.size(), Inew_.size());
 	if constexpr (std::is_same<PoolType,Individuals>::value){
@@ -129,11 +127,13 @@ void Patch<PoolType>::update(Time t){
 		}
 	}
 	if constexpr (std::is_same<PoolType,Mutations>::value){
-		for (auto & i : I_.getHosts()){
-			if (t >= i.t_next_mut_){
-				Time tnext = t + PoolType::Passive::allmutations.nextMutation();
-				unsigned newmut = PoolType::Passive::allmutations.newMutation();
-				i.evolveMutation(t, newmut, tnext);
+		for (auto & I : I_.getHosts()){
+			for (auto & i : I){
+				if (t >= i.t_next_mut_){
+					Time tnext = t + PoolType::Passive::allmutations.nextMutation();
+					unsigned newmut = PoolType::Passive::allmutations.newMutation();
+					i.evolveMutation(t, newmut, tnext);
+				}
 			}
 		}
 		for (auto & i : Enew_.getHosts()){

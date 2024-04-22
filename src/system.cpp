@@ -9,16 +9,16 @@ PYBIND11_MODULE(system, m) {
 	py::module trees = py::module::import("TravelAndMutate.trees");
 
     py::class_<System<Mix>>(m, "SystemMix")
-		.def(py::init<RNGcore*,const np_array<double>&,const np_array<PatchProperties>&>(),
-				py::arg("rng_ptr"), py::arg("commuting_matrix"), py::arg("patch_properties"))
+		.def(py::init<RNGcore*,const np_array<double>&,const np_array<PatchProperties>&,unsigned>(),
+				py::arg("rng_ptr"), py::arg("commuting_matrix"), py::arg("patch_properties"), py::arg("gamma_trick"))
 		.def("setVerbosity", &System<Mix>::setVerbosity)
 		.def("seedEpidemic", &System<Mix>::seedEpidemic)
 		.def("spreadForTime", &System<Mix>::spreadForTime)
 		.def("getFullTrajectory", &System<Mix>::getFullTrajectory);
 
     py::class_<System<Individuals>>(m, "SystemIndividuals")
-		.def(py::init<RNGcore*,const np_array<double>&,const np_array<PatchProperties>&>(),
-				py::arg("rng_ptr"), py::arg("commuting_matrix"), py::arg("patch_properties"))
+		.def(py::init<RNGcore*,const np_array<double>&,const np_array<PatchProperties>&,unsigned>(),
+				py::arg("rng_ptr"), py::arg("commuting_matrix"), py::arg("patch_properties"), py::arg("gamma_trick"))
 		.def("setVerbosity", &System<Individuals>::setVerbosity)
 		.def("seedEpidemic", &System<Individuals>::seedEpidemic)
 		.def("spreadForTime", &System<Individuals>::spreadForTime)
@@ -27,8 +27,8 @@ PYBIND11_MODULE(system, m) {
 		.def("getTreeBalance", &System<Individuals>::getTreeBalance);
 
     py::class_<System<Mutations>>(m, "SystemMutations")
-		.def(py::init<RNGcore*,const np_array<double>&,const np_array<PatchProperties>&>(),
-				py::arg("rng_ptr"), py::arg("commuting_matrix"), py::arg("patch_properties"))
+		.def(py::init<RNGcore*,const np_array<double>&,const np_array<PatchProperties>&,unsigned>(),
+				py::arg("rng_ptr"), py::arg("commuting_matrix"), py::arg("patch_properties"), py::arg("gamma_trick"))
 		.def("setVerbosity", &System<Mutations>::setVerbosity)
 		.def("seedEpidemic", &System<Mutations>::seedEpidemic)
 		.def("spreadForTime", &System<Mutations>::spreadForTime)
