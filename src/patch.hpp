@@ -69,7 +69,7 @@ void Patch<PoolType>::seedEpidemic(){
 			rec_.push_host(Time(0), i.patch_, i.id_, i.mut_, i.infector_patch_, i.infector_id_, i.infector_mut_);
 		}
 	}
-	Enew_.moveFromTo(S_, E_);
+	Enew_.moveFromTo(0, S_, E_);
 	Enew_.clear();
 }
 
@@ -116,22 +116,15 @@ void Patch<PoolType>::setNewOnsets(){
 
 template<Pool PoolType>
 void Patch<PoolType>::update(Time t){
-	Rnew_.moveFromTo(I_, R_);
+	Rnew_.moveFromTo(t, I_, R_);
 	I_.shift(rng_);
-	Inew_.moveFromTo(E_, I_);
+	Inew_.moveFromTo(t, E_, I_);
 	E_.shift(rng_);
-	Enew_.moveFromTo(S_, E_);
+	Enew_.moveFromTo(t, S_, E_);
 	rec_.push_trajectory(t, S_.size(), E_.size(), I_.size(), R_.size(), Enew_.size(), Inew_.size());
 	if constexpr (std::is_same<PoolType,Individuals>::value){
 		for (auto & i : Enew_.getIndividuals()){
 			rec_.push_tree(t, i.patch_, i.id_, i.infector_patch_, i.infector_id_);
-			event_recorder.pushTransition(t, i.patch_, i.id_, 'E');
-		}
-		for (auto & i : Inew_.getIndividuals()){
-			event_recorder.pushTransition(t, i.patch_, i.id_, 'I');
-		}
-		for (auto & i : Rnew_.getIndividuals()){
-			event_recorder.pushTransition(t, i.patch_, i.id_, 'R');
 		}
 	}
 	if constexpr (std::is_same<PoolType,Mutations>::value){
@@ -146,13 +139,6 @@ void Patch<PoolType>::update(Time t){
 		}
 		for (auto & i : Enew_.getHosts()){
 			rec_.push_host(t, i.patch_, i.id_, i.mut_, i.infector_patch_, i.infector_id_, i.infector_mut_);
-			event_recorder.pushTransition(t, i.patch_, i.id_, 'E');
-		}
-		for (auto & i : Inew_.getHosts()){
-			event_recorder.pushTransition(t, i.patch_, i.id_, 'I');
-		}
-		for (auto & i : Rnew_.getHosts()){
-			event_recorder.pushTransition(t, i.patch_, i.id_, 'R');
 		}
 	}
 	Enew_.clear();

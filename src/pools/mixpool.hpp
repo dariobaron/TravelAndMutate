@@ -20,7 +20,7 @@ public:
 	void shift(RNGcore * rng);
 	MixPool getNewErased(RNGcore *) const;
 	MixPool sampleInfectors(RNGcore *, unsigned n) const;
-	void moveFromTo(MixPool & source, MixPool & target) const;
+	void moveFromTo(Time, MixPool & source, MixPool & target) const;
 	void clear();
 };
 
@@ -78,7 +78,7 @@ MixPool MixPool::sampleInfectors(RNGcore *, unsigned n) const{
 	return MixPool(patch_id_, n);
 }
 
-void MixPool::moveFromTo(MixPool & source, MixPool & target) const{
+void MixPool::moveFromTo(Time, MixPool & source, MixPool & target) const{
 	target.sizes_[0] += sizes_[0];
 	source.sizes_.back() -= sizes_[0];
 }

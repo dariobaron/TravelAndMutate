@@ -20,9 +20,9 @@ public:
 	const Vec<Host>& getHosts() const;
 	MutDiff& operator+=(const MutDiff & other);
 	void clear();
-	void moveFromTo(MutPassive & source, MutActive & target) const;
-	void moveFromTo(MutActive & source, MutActive & target) const;
-	void moveFromTo(MutActive & source, MutPassive & target) const;
+	void moveFromTo(Time t, MutPassive & source, MutActive & target) const;
+	void moveFromTo(Time t, MutActive & source, MutActive & target) const;
+	void moveFromTo(Time t, MutActive & source, MutPassive & target) const;
 };
 
 MutDiff::MutDiff(PatchID patch_id) : patch_id_(patch_id) {}

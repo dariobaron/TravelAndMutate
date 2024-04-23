@@ -20,9 +20,9 @@ public:
 	const Vec<Individual>& getIndividuals() const;
 	IndivDiff& operator+=(const IndivDiff & other);
 	void clear();
-	void moveFromTo(IndivPassive & source, IndivActive & target) const;
-	void moveFromTo(IndivActive & source, IndivActive & target) const;
-	void moveFromTo(IndivActive & source, IndivPassive & target) const;
+	void moveFromTo(Time, IndivPassive & source, IndivActive & target) const;
+	void moveFromTo(Time, IndivActive & source, IndivActive & target) const;
+	void moveFromTo(Time, IndivActive & source, IndivPassive & target) const;
 };
 
 IndivDiff::IndivDiff(PatchID patch_id) : patch_id_(patch_id) {}

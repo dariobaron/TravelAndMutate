@@ -37,7 +37,7 @@ concept Pool = requires(typename T::Active a,
 	new T::Diff(pid);
 	d.size();
 	d += d;
-	d.moveFromTo(p,a);			d.moveFromTo(a,p);			d.moveFromTo(a,a);
+	d.moveFromTo(t,p,a);			d.moveFromTo(t,a,p);			d.moveFromTo(t,a,a);
 	d.clear();
 };
 
