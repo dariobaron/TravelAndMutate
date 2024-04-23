@@ -14,7 +14,8 @@ PYBIND11_MODULE(system, m) {
 		.def("setVerbosity", &System<Mix>::setVerbosity)
 		.def("seedEpidemic", &System<Mix>::seedEpidemic)
 		.def("spreadForTime", &System<Mix>::spreadForTime)
-		.def("getFullTrajectory", &System<Mix>::getFullTrajectory);
+		.def("getFullTrajectory", &System<Mix>::getFullTrajectory)
+		.def("getEventRecorder", &System<Mix>::getEventRecorder);
 
     py::class_<System<Individuals>>(m, "SystemIndividuals")
 		.def(py::init<RNGcore*,const np_array<double>&,const np_array<PatchProperties>&,unsigned>(),
@@ -24,7 +25,8 @@ PYBIND11_MODULE(system, m) {
 		.def("spreadForTime", &System<Individuals>::spreadForTime)
 		.def("getFullTrajectory", &System<Individuals>::getFullTrajectory)
 		.def("getInfectionTree", &System<Individuals>::getInfectionTree)
-		.def("getTreeBalance", &System<Individuals>::getTreeBalance);
+		.def("getTreeBalance", &System<Individuals>::getTreeBalance)
+		.def("getEventRecorder", &System<Individuals>::getEventRecorder);
 
     py::class_<System<Mutations>>(m, "SystemMutations")
 		.def(py::init<RNGcore*,const np_array<double>&,const np_array<PatchProperties>&,unsigned>(),
@@ -34,5 +36,6 @@ PYBIND11_MODULE(system, m) {
 		.def("spreadForTime", &System<Mutations>::spreadForTime)
 		.def("getFullTrajectory", &System<Mutations>::getFullTrajectory)
 		.def("getMutationTree", &System<Mutations>::getMutationTree)
+		.def("getEventRecorder", &System<Mutations>::getEventRecorder)
 		.def("setMutationRate", &System<Mutations>::setMutationRate);
 }

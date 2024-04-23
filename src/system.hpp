@@ -9,6 +9,7 @@
 #include "randomcore.hpp"
 #include "patch.hpp"
 #include "trees.hpp"
+#include "eventrecorder.hpp"
 
 template<Pool PoolType>
 class System{
@@ -26,6 +27,7 @@ public:
 	auto getInfectionTree(unsigned i) const;
 	auto getTreeBalance() const;
 	auto getMutationTree(unsigned i) const;
+	auto getEventRecorder() const;
 	void setMutationRate(double mut_rate);
 private:
 	bool isEpidemicAlive() const;
@@ -130,6 +132,12 @@ auto System<PoolType>::getTreeBalance() const{
 template<Pool PoolType>
 auto System<PoolType>::getMutationTree(unsigned i) const{
 	return patches_[i].getRecorder().getMutationTree();
+}
+
+
+template<Pool PoolType>
+auto System<PoolType>::getEventRecorder() const{
+	return event_recorder;
 }
 
 
