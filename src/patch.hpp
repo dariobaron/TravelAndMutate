@@ -4,12 +4,14 @@
 #include <type_traits>
 #include "types.hpp"
 #include "randomcore.hpp"
+#include "haplotypes.hpp"
 #include "recorder.hpp"
 #include "pools.hpp"
 
 template<Pool PoolType>
 class Patch{
 	RNGcore * rng_;
+	Haplotypes * haplos_;
 	Recorder rec_;
 	unsigned N_;
 	double beta_;
@@ -24,6 +26,7 @@ public:
 	Patch(RNGcore * rng, PatchID patch_id, unsigned gamma_trick, PatchProperties prop);
 	double getRho() const;
 	const Recorder & getRecorder() const;
+	void setHaplotypes(Haplotypes * seqdealer);
 	void seedEpidemic();
 	Vec<unsigned> computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const;
 	auto sampleInfectors(unsigned Enew) const;
@@ -52,6 +55,13 @@ double Patch<PoolType>::getRho() const{
 template<Pool PoolType>
 const Recorder & Patch<PoolType>::getRecorder() const{
 	return rec_;
+}
+
+
+template<Pool PoolType>
+void Patch<PoolType>::setHaplotypes(Haplotypes * seqdealer){
+	haplos_ = seqdealer;
+	S_.setHaplotypes(haplos_);
 }
 
 
@@ -130,8 +140,8 @@ void Patch<PoolType>::update(Time t){
 		for (auto & I : I_.getHosts()){
 			for (auto & i : I){
 				if (t >= i.t_next_mut_){
-					Time tnext = t + PoolType::Passive::allmutations.nextMutation();
-					unsigned newmut = PoolType::Passive::allmutations.newMutation(i.evolved_mut_);
+					Time tnext = t + haplos_->nextMutation();
+					unsigned newmut = haplos_->newMutation(i.evolved_mut_);
 					i.evolveMutation(t, newmut, tnext);
 				}
 			}

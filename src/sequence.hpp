@@ -1,7 +1,7 @@
 #ifndef SEQUENCE_HPP
 #define SEQUENCE_HPP
 
-#include <bitset>
+#include <vector>
 #include <string>
 #include <exception>
 #include <random>
@@ -9,22 +9,28 @@
 
 template<unsigned LEN>
 class Sequence{
-	std::bitset<2*LEN> seq_;
+	Vec<bool> seq_;
+	bool valid_;
 public:
-	Sequence() {};
+	Sequence();
 	Sequence(RNGcore * rng);
 	Sequence(std::string str);
 	operator std::string() const;
 	void writeSequenceInto(char * ptr) const;
 	Sequence generateMutation(RNGcore * rng) const;
+	bool isValid() const;
 private:
 	char getCharFromBits(unsigned i) const;
 	void setBits(unsigned i, unsigned val);
 	void setBits(unsigned i, char val);
 };
 
+
 template<unsigned LEN>
-Sequence<LEN>::Sequence(RNGcore * rng){
+Sequence<LEN>::Sequence() : valid_(false) {}
+
+template<unsigned LEN>
+Sequence<LEN>::Sequence(RNGcore * rng) : seq_(2*LEN), valid_(true) {
 	std::bernoulli_distribution Distr(0.5);
 	for (unsigned i = 0; i < seq_.size(); ++i){
 		seq_[i] = Distr(*rng);
@@ -32,7 +38,7 @@ Sequence<LEN>::Sequence(RNGcore * rng){
 }
 
 template<unsigned LEN>
-Sequence<LEN>::Sequence(std::string str) : seq_(LEN) {
+Sequence<LEN>::Sequence(std::string str) : seq_(2*LEN), valid_(true) {
 	if (str.size() != LEN){
 		throw std::runtime_error("Sequence string of wrong length");
 	}
@@ -43,7 +49,10 @@ Sequence<LEN>::Sequence(std::string str) : seq_(LEN) {
 
 template<unsigned LEN>
 Sequence<LEN>::operator std::string() const{
-	std::string decoded(LEN, '0');
+	if (seq_.size() == 0){
+		return "";
+	}
+	std::string decoded(LEN, '\0');
 	for (unsigned i = 0; i < LEN; ++i){
 		decoded[i] = getCharFromBits(i);
 	}
@@ -55,7 +64,6 @@ void Sequence<LEN>::writeSequenceInto(char * ptr) const{
 	for (unsigned i = 0; i < LEN; ++i){
 		ptr[i] = getCharFromBits(i);
 	}
-	ptr[LEN] = '\0';
 }
 
 template<unsigned LEN>
@@ -69,6 +77,11 @@ Sequence<LEN> Sequence<LEN>::generateMutation(RNGcore * rng) const{
 	value %= 4;
 	child.setBits(to_flip, value);
 	return child;
+}
+
+template<unsigned LEN>
+bool Sequence<LEN>::isValid() const{
+	return valid_;
 }
 
 template<unsigned LEN>
