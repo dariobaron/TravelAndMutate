@@ -7,6 +7,7 @@ PYBIND11_MODULE(system, m) {
 
     py::module types = py::module::import("TravelAndMutate.types");
 	py::module trees = py::module::import("TravelAndMutate.trees");
+	py::module sequencedealer = py::module::import("TravelAndMutate.sequencedealer");
 
     py::class_<System<Mix>>(m, "SystemMix")
 		.def(py::init<RNGcore*,const np_array<double>&,const np_array<PatchProperties>&,unsigned>(),
@@ -34,5 +35,6 @@ PYBIND11_MODULE(system, m) {
 		.def("spreadForTime", &System<Mutations>::spreadForTime)
 		.def("getFullTrajectory", &System<Mutations>::getFullTrajectory)
 		.def("getMutationTree", &System<Mutations>::getMutationTree)
+		.def("getSequenceDealer", &System<Mutations>::getSequenceDealer)
 		.def("setMutationRate", &System<Mutations>::setMutationRate);
 }

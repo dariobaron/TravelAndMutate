@@ -26,6 +26,7 @@ public:
 	auto getInfectionTree(unsigned i) const;
 	auto getTreeBalance() const;
 	auto getMutationTree(unsigned i) const;
+	auto & getSequenceDealer() const;
 	void setMutationRate(double mut_rate);
 private:
 	bool isEpidemicAlive() const;
@@ -130,6 +131,17 @@ auto System<PoolType>::getTreeBalance() const{
 template<Pool PoolType>
 auto System<PoolType>::getMutationTree(unsigned i) const{
 	return patches_[i].getRecorder().getMutationTree();
+}
+
+
+template<Pool PoolType>
+auto & System<PoolType>::getSequenceDealer() const{
+	if constexpr (std::is_same<PoolType,Mutations>::value){
+		return PoolType::Passive::allmutations;
+	}
+	else{
+		throw std::logic_error("Meaningless to require sequence-dealer if there are no mutations");
+	}
 }
 
 

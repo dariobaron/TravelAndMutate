@@ -3,12 +3,12 @@
 
 #include "../../types.hpp"
 #include "../../host.hpp"
-#include "../../allmutations.hpp"
+#include "../../sequencedealer.hpp"
 #include "mutdiff.hpp"
 
 class MutPassive{
 public:
-	static AllMutations allmutations;
+	static SequenceDealer allmutations;
 	friend class MutDiff;
 private:
 	PatchID patch_id_;
@@ -21,7 +21,7 @@ public:
 	MutDiff generate(Time t, const MutDiff & other);
 };
 
-AllMutations MutPassive::allmutations;
+SequenceDealer MutPassive::allmutations;
 
 MutPassive::MutPassive(PatchID patch_id, unsigned n) : patch_id_(patch_id), size_(n), count_(0) {}
 
@@ -33,7 +33,7 @@ MutDiff MutPassive::generate(Time t, unsigned n){
 	Vec<Host> v_mut(n);
 	for (auto & i : v_mut){
 		Time tnext = t + allmutations.nextMutation();
-		i = Host(t, tnext, patch_id_, count_, allmutations.newMutation());
+		i = Host(t, tnext, patch_id_, count_, allmutations.newMutation(-1));
 		++count_;
 	}
 	return MutDiff(patch_id_, v_mut);

@@ -131,7 +131,7 @@ void Patch<PoolType>::update(Time t){
 			for (auto & i : I){
 				if (t >= i.t_next_mut_){
 					Time tnext = t + PoolType::Passive::allmutations.nextMutation();
-					unsigned newmut = PoolType::Passive::allmutations.newMutation();
+					unsigned newmut = PoolType::Passive::allmutations.newMutation(i.evolved_mut_);
 					i.evolveMutation(t, newmut, tnext);
 				}
 			}
