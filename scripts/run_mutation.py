@@ -18,7 +18,7 @@ def main(working_dir, filename, seed, suppress_output=False):
 	if not working_dir[-1] == "/":
 		working_dir = working_dir + "/"
 
-	with open(working_dir+"params.json") as paramfile:
+	with open(working_dir+filename+".json") as paramfile:
 		params_dict = json.load(paramfile)
 
 	random_engine = NumpyRandomGenerator(seed)

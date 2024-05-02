@@ -7,17 +7,19 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser(allow_abbrev=False)
 parser.add_argument("--dir", type=str, required=True)
+parser.add_argument("--name", type=str, required=True)
 args = parser.parse_args()
 
 outputfolder = args.dir
 if outputfolder[-1] != "/":
 	outputfolder = outputfolder + "/"
+name = args.name
 
 params = {
 	"sys_type" : "mutations",
 	"N_patches" : 107,
 	"t_max" : 10000,
-	"mutation_rate" : 0.005,
+	"mutation_rate" : 0.003,
 	"gamma_trick" : 3,
 	"Ns_setter" : "fromcsv",
 	"Ns_params" : "inputparams/Ns/italy_small.csv",
@@ -33,5 +35,7 @@ params = {
 	"I0_params" : [27,1]
 }
 
-with open(outputfolder+"params.json", "w") as outfile:
+if not os.path.isdir(outputfolder):
+	os.mkdir(outputfolder)
+with open(outputfolder+name+".json", "w") as outfile:
 	json.dump(params, outfile)

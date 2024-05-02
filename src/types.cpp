@@ -11,4 +11,6 @@ PYBIND11_MODULE(types, m) {
 	PYBIND11_NUMPY_DTYPE(InfecTree, t, loc, ID, inf_loc, inf_ID);
 
 	PYBIND11_NUMPY_DTYPE(MutTree, t, loc, ID, mut, inf_loc, inf_ID, inf_mut);
+
+	PYBIND11_NUMPY_DTYPE(IdSequence, id, sequence);
 }
