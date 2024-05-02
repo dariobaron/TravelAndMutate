@@ -10,6 +10,7 @@ from numpy.lib import recfunctions
 from argparse import ArgumentParser
 from TravelAndMutate.paramsmanager import Params
 from TravelAndMutate.randominterface import NumpyRandomGenerator
+from TravelAndMutate.haplotypes import Haplotypes
 from TravelAndMutate.system import SystemMutations as System
 import TravelAndMutate.datamanager as datman
 
@@ -31,11 +32,12 @@ def main(working_dir, filename, seed, suppress_output=False):
 	patch_params["mu"] = params["mus"]
 	patch_params["I0"] = params["I0"].astype("u4")
 
+	dealer = Haplotypes(random_engine.cpprng, params["mutation_rate"])
+
 	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False), params["gamma_trick"])
-	system.setMutationRate(params["mutation_rate"])
+	system.setHaplotypes(dealer)
 	system.seedEpidemic()
-	if not suppress_output:
-		system.setVerbosity()
+	system.setVerbosity(not suppress_output)
 
 	starttime = time.time()
 	system.spreadForTime(params["t_max"])
