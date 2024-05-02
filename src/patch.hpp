@@ -12,7 +12,6 @@
 template<Pool PoolType>
 class Patch{
 	RNGcore * rng_;
-	Haplotypes * haplos_;
 	Recorder rec_;
 	unsigned N_;
 	double beta_;
@@ -60,9 +59,9 @@ const Recorder & Patch<PoolType>::getRecorder() const{
 
 
 template<Pool PoolType>
-void Patch<PoolType>::setHaplotypes(Haplotypes * seqdealer){
-	haplos_ = seqdealer;
-	S_.setHaplotypes(haplos_);
+void Patch<PoolType>::setHaplotypes(Haplotypes * haplos){
+	S_.setHaplotypes(haplos);
+	I_.setHaplotypes(haplos);
 }
 
 
@@ -138,15 +137,7 @@ void Patch<PoolType>::update(Time t){
 		}
 	}
 	if constexpr (std::is_same<PoolType,Mutations>::value){
-		for (auto & I : I_.getHosts()){
-			for (auto & i : I){
-				if (t >= i.t_next_mut_){
-					Time tnext = t + haplos_->nextMutation();
-					unsigned newmut = haplos_->newMutation(i.evolved_mut_);
-					i.evolveMutation(t, newmut, tnext);
-				}
-			}
-		}
+		I_.updateHaplotypes(t);
 		for (auto & i : Enew_.getHosts()){
 			rec_.push_host(t, i.patch_, i.id_, i.mut_, i.infector_patch_, i.infector_id_, i.infector_mut_);
 		}

@@ -34,7 +34,7 @@ public:
 	void setHaplotypes(Haplotypes * seqdealer);
 private:
 	bool isEpidemicAlive() const;
-	void checkSeqdealer() const;
+	void checkHaploDealer() const;
 	void checkSeeded() const;
 	void updatePatches();
 };
@@ -69,7 +69,7 @@ void System<PoolType>::setVerbosity(bool verbose){
 
 template<Pool PoolType>
 void System<PoolType>::seedEpidemic(){
-	checkSeqdealer();
+	checkHaploDealer();
 	seeded_ = true;
 	for (auto & p : patches_){
 		p.seedEpidemic();
@@ -80,7 +80,7 @@ void System<PoolType>::seedEpidemic(){
 template<Pool PoolType>
 void System<PoolType>::spreadForTime(Time tmax){
 	checkSeeded();
-	checkSeqdealer();
+	checkHaploDealer();
 	updatePatches();
 	Vec<double> rhos(patches_.size());
 	while (t_ < tmax && isEpidemicAlive()){
@@ -145,8 +145,8 @@ auto System<PoolType>::getEventRecorder() const{
 
 
 template<Pool PoolType>
-void System<PoolType>::setHaplotypes(Haplotypes * seqdealer){
-	haplos_ = seqdealer;
+void System<PoolType>::setHaplotypes(Haplotypes * haplos){
+	haplos_ = haplos;
 	for (auto & p : patches_){
 		p.setHaplotypes(haplos_);
 	}
@@ -164,7 +164,7 @@ bool System<PoolType>::isEpidemicAlive() const{
 
 
 template<Pool PoolType>
-void System<PoolType>::checkSeqdealer() const{
+void System<PoolType>::checkHaploDealer() const{
 	if constexpr (std::is_same<PoolType,Mutations>::value){
 		if (!static_cast<bool>(haplos_)){
 			throw std::runtime_error("Spreading required before setting Haplotypes");
