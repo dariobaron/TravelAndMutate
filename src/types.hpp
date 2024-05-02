@@ -51,4 +51,12 @@ struct MutTree{
 			t(t), loc(loc), ID(ID), mut(mut), inf_loc(inf_loc), inf_ID(inf_ID), inf_mut(inf_mut) {}
 };
 
+constexpr unsigned seq_len = 32000;
+
+struct IdSequence{
+	using ChrArr = char[seq_len];
+	unsigned id;
+	ChrArr sequence;
+};
+
 #endif
