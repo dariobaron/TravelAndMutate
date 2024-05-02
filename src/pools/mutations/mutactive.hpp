@@ -5,27 +5,35 @@
 #include <random>
 #include "../../types.hpp"
 #include "../../host.hpp"
+#include "../../haplotypes.hpp"
 #include "../../randomcore.hpp"
 #include "../../algorithms.hpp"
 #include "mutdiff.hpp"
 
 class MutActive{
 private:
+	Haplotypes * haplos_;
 	const PatchID patch_id_;
 	const double rate_;
 	Vec<Vec<Host>> hosts_;
 public:
 	friend class MutDiff;
 	MutActive(PatchID patch_id, unsigned gamma_trick, double rate);
+	void setHaplotypes(Haplotypes * seqdealer);
 	unsigned size() const;
 	double getPhi() const;
 	Vec<Vec<Host>>& getHosts();
 	void shift(RNGcore * rng);
 	MutDiff getNewErased(RNGcore * rng) const;
 	MutDiff sampleInfectors(RNGcore * rng, unsigned n) const;
+	void updateHaplotypes(Time t);
 };
 
 MutActive::MutActive(PatchID patch_id, unsigned gamma_trick, double rate) : patch_id_(patch_id), rate_(rate), hosts_(gamma_trick) {}
+
+void MutActive::setHaplotypes(Haplotypes * seqdealer){
+	haplos_ = seqdealer;
+}
 
 unsigned MutActive::size() const{
 	unsigned size = 0;
@@ -92,5 +100,16 @@ MutDiff MutActive::sampleInfectors(RNGcore * rng, unsigned n) const{
 	return MutDiff(patch_id_, sampled);
 }
 
+void MutActive::updateHaplotypes(Time t){
+	for (auto & hosts : hosts_){
+		for (auto & infectious : hosts){
+			if (t >= infectious.t_next_mut_){
+				Time tnext = t + haplos_->nextMutation();
+				unsigned newmut = haplos_->newMutation(infectious.evolved_mut_);
+				infectious.evolveMutation(t, newmut, tnext);
+			}
+		}
+	}
+}
 
 #endif
