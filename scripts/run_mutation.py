@@ -54,6 +54,7 @@ def main(working_dir, filename, seed, suppress_output=False):
 		"exec_time" : simulationtime
 	}
 	trajectories = [system.getFullTrajectory(p) for p in range(params["N_patches"])]
+	haplotree = dealer.getMutationTree()
 	postprocesstime = time.time() - starttime
 
 	starttime = time.time()
@@ -62,6 +63,7 @@ def main(working_dir, filename, seed, suppress_output=False):
 	traj_identifier = datman.writeGroupInGroup("trajectories", group_identifier)
 	for i,trajectory in enumerate(trajectories):
 		datman.writeDatasetInGroup(str(i), trajectory, traj_identifier, suppress_output)
+	datman.writeDatasetInGroup("mutationtree", haplotree, group_identifier, suppress_output)
 	storingtime = time.time() - starttime
 
 	if not suppress_output:
