@@ -28,6 +28,7 @@ public:
 	np_array<IdSequence> readAll();
 	unsigned newMutation(unsigned i);
 	Time nextMutation();
+	Vec<unsigned> getParents() const {return parents_;};
 private:
 	void computeIthSequence(unsigned i);
 	void checkSequence(unsigned i);
