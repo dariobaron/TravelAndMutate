@@ -24,6 +24,7 @@ public:
 	double getPhiH(unsigned i) const;
 	unsigned getTotal() const;
 	std::string getSequence(unsigned i);
+	np_array<ParentChild> getMutationTree() const;
 	np_array<IdSequence> read(const np_array<unsigned> & ids);
 	np_array<IdSequence> readAll();
 	unsigned newMutation(unsigned i);
@@ -58,6 +59,16 @@ std::string Haplotypes::getSequence(unsigned i){
 	checkSequence(i);
 	computeIthSequence(i);
 	return static_cast<std::string>(seqs_[i]);
+}
+
+np_array<ParentChild> Haplotypes::getMutationTree() const{
+	np_array<ParentChild> tree(parents_.size());
+	auto view = tree.mutable_unchecked<1>();
+	for (unsigned i = 0; i < parents_.size(); ++i){
+		view[i].parent = parents_[i];
+		view[i].child = i;
+	}
+	return tree;
 }
 
 np_array<IdSequence> Haplotypes::read(const np_array<unsigned> & ids){
