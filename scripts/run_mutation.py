@@ -49,16 +49,20 @@ def main(working_dir, filename, seed, suppress_output=False):
 		defaults=None, usemask=False, asrecarray=True, autoconvert=False
 	)
 	mutations.sort(order="t")
-
 	sim_attrs = {
 		"seed" : seed,
 		"exec_time" : simulationtime
 	}
-	datman.create_dataset(working_dir+filename, params, seed, mutations, sim_attrs, suppress_output=suppress_output)
+	postprocesstime = time.time() - starttime
+
+	starttime = time.time()
+	group_identifier = datman.createReplica(working_dir+filename, params, seed, sim_attrs, suppress_output=suppress_output)
+	datman.writeDatasetInGroup("infections", mutations, group_identifier, suppress_output)
 	storingtime = time.time() - starttime
 
 	if not suppress_output:
 		print(f"Time elapsed simulating: {round(simulationtime, 2)} s")
+		print(f"Time elapsed post-processing: {round(postprocesstime, 2)} s")
 		print(f"Time elapsed storing data: {round(storingtime, 2)} s")
 
 if __name__ == "__main__":

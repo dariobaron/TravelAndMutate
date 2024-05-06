@@ -13,7 +13,7 @@ from TravelAndMutate.system import SystemIndividuals as System
 from TravelAndMutate.trees import TreeBalanceProxy
 import TravelAndMutate.datamanager as datman
 
-def main(working_dir, seed, suppress_output=False):
+def main(working_dir, filename, seed, suppress_output=False):
 
 	if not working_dir[-1] == "/":
 		working_dir = working_dir + "/"
@@ -33,23 +33,31 @@ def main(working_dir, seed, suppress_output=False):
 
 	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False), params["gamma_trick"])
 	system.seedEpidemic()
+	system.setVerbosity(not suppress_output)
 
 	starttime = time.time()
 	system.spreadForTime(params["t_max"])
-	endtime = time.time()
+	simulationtime = time.time() - starttime
 
+	starttime = time.time()
 	treeTB = system.getTreeBalance()
-
 	sim_attrs = {
 		"seed" : seed,
-		"exec_time" : endtime - starttime,
+		"exec_time" : simulationtime,
 		"internals" : treeTB.internals(),
 		"tips" : treeTB.tips()
 	}
-	datman.create_dataset(working_dir+"treesTB", params["params_dict"], seed, treeTB.tree(), sim_attrs, suppress_output=suppress_output)
+	postprocesstime = time.time() - starttime
 
+	starttime = time.time()
+	group_identifier = datman.createReplica(working_dir+filename, params, seed, sim_attrs, suppress_output=suppress_output)
+	datman.writeDatasetInGroup("tree", treeTB.tree(), group_identifier, suppress_output)
+	storingtime = time.time() - starttime
+	
 	if not suppress_output:
-		print(f"Time elapsed: {round(endtime-starttime, 2)} s")
+		print(f"Time elapsed simulating: {round(simulationtime, 2)} s")
+		print(f"Time elapsed post-processing: {round(postprocesstime, 2)} s")
+		print(f"Time elapsed storing data: {round(storingtime, 2)} s")
 
 if __name__ == "__main__":
 	parser = ArgumentParser(allow_abbrev=False)
@@ -58,4 +66,4 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 	working_dir = args.dir
 	seed = args.seed
-	main(working_dir, seed)
+	main(working_dir, "treesTB", seed)

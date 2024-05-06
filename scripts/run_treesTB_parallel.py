@@ -6,7 +6,8 @@ import time
 import multiprocessing
 from tqdm import tqdm
 from argparse import ArgumentParser
-from scripts import consolidate_h5, run_treesTB
+from TravelAndMutate.datamanager import consolidateH5
+from scripts import run_treesTB
 
 parser = ArgumentParser(allow_abbrev=False)
 parser.add_argument("--dir", type=str, required=True)
@@ -23,7 +24,7 @@ except:
 
 iterable = [seed for seed in seeds]
 def kernel(seed):
-	run_treesTB.main(working_dir, seed, suppress_output=True)
+	run_treesTB.main(working_dir, "treesTB", seed, suppress_output=True)
 	return
 
 if __name__ == '__main__' and kernel is not None:
@@ -37,5 +38,5 @@ if __name__ == '__main__' and kernel is not None:
 		pool.close()
 		pool.join()
 	filename = "data/treesTB"
-	consolidate_h5.main(filename)
+	consolidateH5(filename, filename)
 
