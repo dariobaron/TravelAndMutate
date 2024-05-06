@@ -59,6 +59,15 @@ def createReplica(filename, params_dict, seed, sim_attrs={}, suppress_output=Fal
 		group_identifier = {"whichfile":outfilename, "whichgroup":replica.name}
 	return group_identifier
 
+
+def writeGroupInGroup(groupname, group_identifier):
+	with h5py.File(group_identifier["whichfile"], "a") as datafile:
+		group = datafile.require_group(group_identifier["whichgroup"])
+		newgroup = group.create_group(groupname, track_order=True)
+		newgroup_identifier = {"whichfile":group_identifier["whichfile"], "whichgroup":newgroup.name}
+	return newgroup_identifier
+
+
 def writeDatasetInGroup(datasetname, values, group_identifier, suppress_output=False):
 	with h5py.File(group_identifier["whichfile"], "a") as datafile:	
 		if not suppress_output:
