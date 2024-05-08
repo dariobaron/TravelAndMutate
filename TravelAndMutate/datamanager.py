@@ -84,8 +84,17 @@ def collectAttributeFromGroup(key, group, applyfunc=None):
 	return pd.Series(attributes)
 
 
+def recursivelyCopyAttributes(srcgrp, destgrp):
+	for key,val in srcgrp.attrs.items():
+		destgrp.attrs.create(key,val)
+	if isinstance(srcgrp, h5py.Group):
+		for key in srcgrp.keys():
+			recursivelyCopyAttributes(srcgrp[key], destgrp[key])
+		
+
 def consolidateH5(inputfilename, outputfilename, suppress_output=False):
 	infilenames = sorted(glob.glob(inputfilename+f"_*_seed-*.h5"))
+	toremove = []
 	groupnames = [f.split("_")[-2] for f in infilenames]
 	outfilename = outputfilename + ".h5"
 	overwritten = []
@@ -96,19 +105,23 @@ def consolidateH5(inputfilename, outputfilename, suppress_output=False):
 				params_dict = dict(ingroup.attrs)
 				groupname = filterGroupmembersWithParams(outfile, params_dict)
 				if groupname is None:
-					infile.copy(infile[groupnames[i]], outfile, name=groupnames[i], expand_soft=True, expand_external=True, expand_refs=True)
+					infile.copy(infile[groupnames[i]], outfile, name=groupnames[i], expand_soft=True, expand_external=True, expand_refs=True, without_attrs=True)
+					recursivelyCopyAttributes(infile[groupnames[i]], outfile[groupnames[i]])
+					toremove.append(infilename)
 				elif groupname == groupnames[i]:
 					outgroup = outfile.require_group(groupname)
 					if len(ingroup.attrs) != len(outgroup.attrs):
 						raise RuntimeError("Number of parameters of the simulation do not match with the ones for the existing group")
-					datasetname = list(ingroup.keys())[0]
-					if datasetname in outgroup:
-						overwritten.append(datasetname)
-						del outgroup[datasetname]
-					infile.copy(ingroup[datasetname], outgroup, name=datasetname, expand_soft=True, expand_external=True, expand_refs=True)
+					subgroupname = list(ingroup.keys())[0]
+					if subgroupname in outgroup:
+						overwritten.append(subgroupname)
+						del outgroup[subgroupname]
+					infile.copy(ingroup[subgroupname], outgroup, name=subgroupname, expand_soft=True, expand_external=True, expand_refs=True, without_attrs=True)
+					recursivelyCopyAttributes(ingroup[subgroupname], outgroup[subgroupname])
+					toremove.append(infilename)
 				else:
 					raise RuntimeError(f"Group-name mismatch ({groupname} vs {groupnames[i]}) for params: {params_dict}")
-	for f in infilenames:
+	for f in toremove:
 		os.remove(f)
 	if len(overwritten) > 0:
 		print(f"WARNING: overwritten {len(overwritten)} datasets!")
