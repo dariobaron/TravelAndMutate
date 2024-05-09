@@ -60,6 +60,7 @@ const Recorder & Patch<PoolType>::getRecorder() const{
 template<Pool PoolType>
 void Patch<PoolType>::setHaplotypes(Haplotypes * haplos){
 	S_.setHaplotypes(haplos);
+	E_.setHaplotypes(haplos);
 	I_.setHaplotypes(haplos);
 }
 
