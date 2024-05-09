@@ -8,6 +8,8 @@ class MutPassive;
 class MutActive;
 
 class MutDiff{
+public:
+	static Vec<unsigned> mut_per_host_;
 private:
 	PatchID patch_id_;
 	Vec<Host> hosts_;
@@ -24,6 +26,8 @@ public:
 	void moveFromTo(MutActive & source, MutActive & target) const;
 	void moveFromTo(MutActive & source, MutPassive & target) const;
 };
+
+Vec<unsigned> MutDiff::mut_per_host_;
 
 MutDiff::MutDiff(PatchID patch_id) : patch_id_(patch_id) {}
 

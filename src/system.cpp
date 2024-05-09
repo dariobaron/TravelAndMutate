@@ -35,6 +35,7 @@ PYBIND11_MODULE(system, m) {
 		.def("spreadForTime", &System<Mutations>::spreadForTime)
 		.def("getFullTrajectory", &System<Mutations>::getFullTrajectory)
 		.def("getMutationTree", &System<Mutations>::getMutationTree)
+		.def("getMutPerHost", &System<Mutations>::getMutPerHost)
 		.def("setHaplotypes", &System<Mutations>::setHaplotypes)
 		;
 }

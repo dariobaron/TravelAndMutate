@@ -29,6 +29,7 @@ public:
 	auto getInfectionTree(unsigned i) const;
 	auto getTreeBalance() const;
 	auto getMutationTree(unsigned i) const;
+	auto getMutPerHost() const;
 	void setHaplotypes(Haplotypes * seqdealer);
 private:
 	bool isEpidemicAlive() const;
@@ -133,6 +134,18 @@ auto System<PoolType>::getTreeBalance() const{
 template<Pool PoolType>
 auto System<PoolType>::getMutationTree(unsigned i) const{
 	return patches_[i].getRecorder().getMutationTree();
+}
+
+
+template<Pool PoolType>
+auto System<PoolType>::getMutPerHost() const{
+	const unsigned size = PoolType::Diff::mut_per_host_.size();
+	np_array<unsigned> arr(size);
+	auto view = arr.mutable_unchecked<1>();
+	for (unsigned i = 0; i < size; ++i){
+		view[i] = PoolType::Diff::mut_per_host_[i];
+	}
+	return arr;
 }
 
 

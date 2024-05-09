@@ -17,6 +17,9 @@ void MutDiff::moveFromTo(MutActive & source, MutActive & target) const{
 
 void MutDiff::moveFromTo(MutActive & source, MutPassive & target) const{
 	target.size_ += indices_.size();
+	for (auto i : indices_){
+		mut_per_host_.push_back(source.hosts_.back()[i].nmut_);
+	}
 	eraseWithoutOrder(source.hosts_.back(), indices_);
 }
 
