@@ -59,4 +59,9 @@ struct IdSequence{
 	ChrArr sequence;
 };
 
+struct ParentChild{
+	unsigned parent;
+	unsigned child;
+};
+
 #endif

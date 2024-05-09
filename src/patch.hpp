@@ -61,6 +61,7 @@ const Recorder & Patch<PoolType>::getRecorder() const{
 template<Pool PoolType>
 void Patch<PoolType>::setHaplotypes(Haplotypes * haplos){
 	S_.setHaplotypes(haplos);
+	E_.setHaplotypes(haplos);
 	I_.setHaplotypes(haplos);
 }
 
@@ -137,6 +138,7 @@ void Patch<PoolType>::update(Time t){
 		}
 	}
 	if constexpr (std::is_same<PoolType,Mutations>::value){
+		E_.updateHaplotypes(t);
 		I_.updateHaplotypes(t);
 		for (auto & i : Enew_.getHosts()){
 			rec_.push_host(t, i.patch_, i.id_, i.mut_, i.infector_patch_, i.infector_id_, i.infector_mut_);

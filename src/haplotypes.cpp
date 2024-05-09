@@ -9,6 +9,7 @@ PYBIND11_MODULE(haplotypes, m) {
 		.def(py::init<RNGcore*,double>())
 		.def("getTotal", &Haplotypes::getTotal)
 		.def("getSequence", &Haplotypes::getSequence)
+		.def("getMutationTree", &Haplotypes::getMutationTree)
 		.def("read", &Haplotypes::read)
 		.def("readAll", &Haplotypes::readAll)
 		;

@@ -10,6 +10,7 @@ from numpy.lib import recfunctions
 from argparse import ArgumentParser
 from TravelAndMutate.paramsmanager import Params
 from TravelAndMutate.randominterface import NumpyRandomGenerator
+from TravelAndMutate.haplotypes import Haplotypes
 from TravelAndMutate.system import SystemMutations as System
 import TravelAndMutate.datamanager as datman
 
@@ -31,11 +32,12 @@ def main(working_dir, filename, seed, suppress_output=False):
 	patch_params["mu"] = params["mus"]
 	patch_params["I0"] = params["I0"].astype("u4")
 
+	dealer = Haplotypes(random_engine.cpprng, params["mutation_rate"])
+
 	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False), params["gamma_trick"])
-	system.setMutationRate(params["mutation_rate"])
+	system.setHaplotypes(dealer)
 	system.seedEpidemic()
-	if not suppress_output:
-		system.setVerbosity()
+	system.setVerbosity(not suppress_output)
 
 	starttime = time.time()
 	system.spreadForTime(params["t_max"])
@@ -47,16 +49,30 @@ def main(working_dir, filename, seed, suppress_output=False):
 		defaults=None, usemask=False, asrecarray=True, autoconvert=False
 	)
 	mutations.sort(order="t")
-
 	sim_attrs = {
 		"seed" : seed,
 		"exec_time" : simulationtime
 	}
-	datman.create_dataset(working_dir+filename, params, seed, mutations, sim_attrs, suppress_output=suppress_output)
+	trajectories = [system.getFullTrajectory(p) for p in range(params["N_patches"])]
+	haplotree = dealer.getMutationTree()
+	unique_haplos = np.unique(mutations["mut"])
+	unique_haplos.sort()
+	sequences = dealer.read(unique_haplos)
+	postprocesstime = time.time() - starttime
+
+	starttime = time.time()
+	group_identifier = datman.createReplica(working_dir+filename, params, seed, sim_attrs, suppress_output=suppress_output)
+	datman.writeDatasetInGroup("infections", mutations, group_identifier, suppress_output)
+	traj_identifier = datman.writeGroupInGroup("trajectories", group_identifier)
+	for i,trajectory in enumerate(trajectories):
+		datman.writeDatasetInGroup(str(i), trajectory, traj_identifier, suppress_output)
+	datman.writeDatasetInGroup("mutationtree", haplotree, group_identifier, suppress_output)
+	datman.writeDatasetInGroup("sequences", sequences, group_identifier, suppress_output)
 	storingtime = time.time() - starttime
 
 	if not suppress_output:
 		print(f"Time elapsed simulating: {round(simulationtime, 2)} s")
+		print(f"Time elapsed post-processing: {round(postprocesstime, 2)} s")
 		print(f"Time elapsed storing data: {round(storingtime, 2)} s")
 
 if __name__ == "__main__":
