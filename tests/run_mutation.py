@@ -49,11 +49,13 @@ def main(working_dir, filename, seed, suppress_output=False):
 		"exec_time" : simulationtime
 	}
 	mutations_per_host = system.getMutPerHost()
+	events = system.getEventRecorder().read()
 	postprocesstime = time.time() - starttime
 
 	starttime = time.time()
 	group_identifier = datman.createReplica(working_dir+filename, params, seed, sim_attrs, suppress_output=suppress_output)
 	datman.writeDatasetInGroup("mutationsperhost", mutations_per_host, group_identifier, suppress_output)
+	datman.writeDatasetInGroup("events", events, group_identifier, suppress_output)
 	storingtime = time.time() - starttime
 
 	if not suppress_output:

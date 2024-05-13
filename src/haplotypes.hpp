@@ -30,6 +30,7 @@ public:
 	unsigned newMutation(unsigned i);
 	Time nextMutation();
 	Vec<unsigned> getParents() const {return parents_;};
+	Time exportMutPeriod() {return std::round(mut_period_(rng_->get()));};
 private:
 	void computeIthSequence(unsigned i);
 	void checkSequence(unsigned i);
@@ -104,7 +105,7 @@ unsigned Haplotypes::newMutation(unsigned i){
 }
 
 Time Haplotypes::nextMutation(){
-	return mut_period_(rng_->get());
+	return std::round(mut_period_(rng_->get()));
 }
 
 void Haplotypes::computeIthSequence(unsigned i){

@@ -8,6 +8,7 @@ PYBIND11_MODULE(system, m) {
     py::module types = py::module::import("TravelAndMutate.types");
 	py::module trees = py::module::import("TravelAndMutate.trees");
 	py::module haplotypes = py::module::import("TravelAndMutate.haplotypes");
+	py::module eventrecorder = py::module::import("TravelAndMutate.eventrecorder");
 
     py::class_<System<Mix>>(m, "SystemMix")
 		.def(py::init<RNGcore*,const np_array<double>&,const np_array<PatchProperties>&,unsigned>(),

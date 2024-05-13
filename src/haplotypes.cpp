@@ -12,5 +12,6 @@ PYBIND11_MODULE(haplotypes, m) {
 		.def("getMutationTree", &Haplotypes::getMutationTree)
 		.def("read", &Haplotypes::read)
 		.def("readAll", &Haplotypes::readAll)
+		.def("exportMutPeriod", &Haplotypes::exportMutPeriod)
 		;
 }
