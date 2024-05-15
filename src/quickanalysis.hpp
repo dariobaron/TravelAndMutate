@@ -1,7 +1,7 @@
 #ifndef QUICKANALYSIS_HPP
 #define QUICKANALYSIS_HPP
 
-#include <map>
+#include <exception>
 #include "types.hpp"
 #include "haplotypes.hpp"
 
@@ -9,22 +9,50 @@ struct IdDepth{
 	unsigned id, depth;
 };
 np_array<IdDepth> computeDepths(const np_array<ParentChild> & tree){
-	std::map<unsigned,unsigned> depths;
-	auto view_tree = tree.unchecked<1>();
+	np_array<IdDepth> depths(tree.shape(0));
+	auto view_d = depths.mutable_unchecked<1>();
+	for (unsigned i = 0; i < depths.shape(0); ++i){
+		view_d[i].id = i;
+		view_d[i].depth = 0;
+	}
+	auto view_t = tree.unchecked<1>();
 	for (unsigned i = 0; i < tree.shape(0); ++i){
-		auto it = depths.find(view_tree[i].parent);
-		if (it == depths.end())	{	depths[view_tree[i].child] = 0;	}
-		else					{	depths[view_tree[i].child] = 1 + depths[view_tree[i].parent];	}
+		auto branch = view_t[i];
+		if (i != 0){
+			if ((branch.parent >= branch.child) || (branch.child > i)){
+				throw std::runtime_error("The tree is ill-formed!");
+			}
+		}
+		if (branch.parent < depths.shape(0)){
+			view_d[branch.child].depth = 1 + view_d[branch.parent].depth;
+		}
 	}
-	np_array<IdDepth> arr_depths(depths.size());
-	auto view_dept = arr_depths.mutable_unchecked<1>();
-	unsigned idx = 0;
-	for (auto & pair : depths){
-		view_dept[idx].id = pair.first;
-		view_dept[idx].depth = pair.second;
-		++idx;
+	return depths;
+}
+
+struct IdChildren{
+	unsigned id, children;
+};
+np_array<IdChildren> computeChildren(const np_array<ParentChild> & tree){
+	np_array<IdChildren> children(tree.shape(0));
+	auto view_c = children.mutable_unchecked<1>();
+	for (unsigned i = 0; i < children.shape(0); ++i){
+		view_c[i].id = i;
+		view_c[i].children = 0;
 	}
-	return arr_depths;
+	auto view_t = tree.unchecked<1>();
+	for (unsigned i = 0; i < tree.shape(0); ++i){
+		auto branch = view_t[i];
+		if (i != 0){
+			if ((branch.parent >= branch.child) || (branch.child > i)){
+				throw std::runtime_error("The tree is ill-formed!");
+			}
+		}
+		if (branch.parent < children.shape(0)){
+			++view_c[branch.parent].children;
+		}
+	}
+	return children;
 }
 
 

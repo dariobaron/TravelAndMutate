@@ -32,7 +32,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	patch_params["mu"] = params["mus"]
 	patch_params["I0"] = params["I0"].astype("u4")
 
-	dealer = Haplotypes(random_engine.cpprng, params["mutation_rate"])
+	dealer = Haplotypes(random_engine.cpprng, params["mutation_rate"], params["mutation_k"])
 
 	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False), params["gamma_trick"])
 	system.setHaplotypes(dealer)
@@ -57,7 +57,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	haplotree = dealer.getMutationTree()
 	unique_haplos = np.unique(mutations["mut"])
 	unique_haplos.sort()
-	sequences = dealer.read(unique_haplos)
+#	sequences = dealer.read(unique_haplos)
 	postprocesstime = time.time() - starttime
 
 	starttime = time.time()
@@ -67,7 +67,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	for i,trajectory in enumerate(trajectories):
 		datman.writeDatasetInGroup(str(i), trajectory, traj_identifier, suppress_output)
 	datman.writeDatasetInGroup("mutationtree", haplotree, group_identifier, suppress_output)
-	datman.writeDatasetInGroup("sequences", sequences, group_identifier, suppress_output)
+#	datman.writeDatasetInGroup("sequences", sequences, group_identifier, suppress_output)
 	storingtime = time.time() - starttime
 
 	if not suppress_output:

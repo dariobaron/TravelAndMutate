@@ -19,7 +19,7 @@ private:
 	Vec<double> phi_h_;
 	std::gamma_distribution<> mut_period_;
 public:
-	Haplotypes(RNGcore * rng, double mr);
+	Haplotypes(RNGcore * rng, double mr, double k);
 	double getMutationRate() const;
 	double getPhiH(unsigned i) const;
 	unsigned getTotal() const;
@@ -35,10 +35,9 @@ private:
 	void checkSequence(unsigned i);
 };
 
-Haplotypes::Haplotypes(RNGcore * rng, double mr) : rng_(rng), mr_(mr) {
+Haplotypes::Haplotypes(RNGcore * rng, double mr, double k) : rng_(rng), mr_(mr) {
 	// gamma distribution arbitrarily chosen
 	// parametrized with: mean = k * theta, and: variance = k * theta^2
-	double k = 10; // arbitrarily chosen to preserve the shape
 	double theta = 1 / mr_ / k;
 	mut_period_ = std::gamma_distribution<>(k, theta);
 }
