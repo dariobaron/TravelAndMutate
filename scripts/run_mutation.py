@@ -14,12 +14,12 @@ from TravelAndMutate.haplotypes import Haplotypes
 from TravelAndMutate.system import SystemMutations as System
 import TravelAndMutate.datamanager as datman
 
-def main(working_dir, filename, seed, suppress_output=False):
+def main(working_dir, filename, groupname, seed, suppress_output=False):
 
 	if not working_dir[-1] == "/":
 		working_dir = working_dir + "/"
 
-	with open(working_dir+filename+".json") as paramfile:
+	with open(f"{working_dir+filename}_{groupname}.json") as paramfile:
 		params_dict = json.load(paramfile)
 
 	random_engine = NumpyRandomGenerator(seed)
@@ -61,7 +61,7 @@ def main(working_dir, filename, seed, suppress_output=False):
 	postprocesstime = time.time() - starttime
 
 	starttime = time.time()
-	group_identifier = datman.createReplica(working_dir+filename, params, seed, sim_attrs, suppress_output=suppress_output)
+	group_identifier = datman.createReplica(working_dir+filename, groupname, params, seed, sim_attrs, suppress_output=suppress_output)
 	datman.writeDatasetInGroup("infections", mutations, group_identifier, suppress_output)
 	traj_identifier = datman.writeGroupInGroup("trajectories", group_identifier)
 	for i,trajectory in enumerate(trajectories):
@@ -79,11 +79,13 @@ if __name__ == "__main__":
 	parser = ArgumentParser(allow_abbrev=False)
 	parser.add_argument("--dir", type=str, required=True)
 	parser.add_argument("--name", type=str, required=True)
+	parser.add_argument("--group", type=str, required=True)
 	parser.add_argument("--seed", type=int, required=True)
 	parser.add_argument("--suppressoutput", type=bool, default=False)
 	args = parser.parse_args()
 	working_dir = args.dir
 	filename = args.name
+	groupname = args.group
 	seed = args.seed
 	suppress_output = args.suppressoutput
-	main(working_dir, filename, seed, suppress_output)
+	main(working_dir, filename, groupname, seed, suppress_output)
