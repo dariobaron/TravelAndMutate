@@ -31,16 +31,7 @@ def createNewGroupname(group, prefix="", postfix=""):
 		i = i + 1
 		
 
-def createReplica(filename, params_dict, seed, sim_attrs={}, suppress_output=False):
-	if isfile(filename+".h5"):
-		with h5py.File(filename+".h5") as storage:
-			groupname = filterGroupmembersWithParams(storage, params_dict)
-			if groupname is None:
-				groupname = createNewGroupname(storage)
-	else:
-		groupname = "0"
-	if not isinstance(groupname, str):
-		raise RuntimeError(f"Found multiple groups with same parameters: {groupname}")
+def createReplica(filename, groupname, params_dict, seed, sim_attrs={}, suppress_output=False):
 	outfilename = filename + f"_{groupname}_seed-{seed:05d}" + ".h5"
 	if isfile(outfilename):
 		if not suppress_output:
@@ -90,6 +81,14 @@ def recursivelyCopyAttributes(srcgrp, destgrp):
 	if isinstance(srcgrp, h5py.Group):
 		for key in srcgrp.keys():
 			recursivelyCopyAttributes(srcgrp[key], destgrp[key])
+
+
+def checkAttributes(group, params_dict):
+	if len(params_dict) != len(group.attrs):
+		raise RuntimeError(f"Wrong attributes match: {group.name} does not have {len(params_dict)} attributes")
+	for key,val in params_dict.items():
+		if np.any(val != group.attrs[key]):
+			raise RuntimeError(f"Attribute value of {key} in {group.name} mismatch the required value {val}")
 		
 
 def consolidateH5(inputfilename, outputfilename, suppress_output=False):
@@ -110,8 +109,7 @@ def consolidateH5(inputfilename, outputfilename, suppress_output=False):
 					toremove.append(infilename)
 				elif groupname == groupnames[i]:
 					outgroup = outfile.require_group(groupname)
-					if len(ingroup.attrs) != len(outgroup.attrs):
-						raise RuntimeError("Number of parameters of the simulation do not match with the ones for the existing group")
+					checkAttributes(ingroup, outgroup.attrs)
 					subgroupname = list(ingroup.keys())[0]
 					if subgroupname in outgroup:
 						overwritten.append(subgroupname)

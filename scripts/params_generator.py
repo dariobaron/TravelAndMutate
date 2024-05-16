@@ -3,21 +3,16 @@ import os
 sys.path[0] = os.getcwd()
 
 import json
+import h5py
 from argparse import ArgumentParser
+from TravelAndMutate.randominterface import NumpyRandomGenerator
+from TravelAndMutate.paramsmanager import Params
+import TravelAndMutate.datamanager as datman
 
-parser = ArgumentParser(allow_abbrev=False)
-parser.add_argument("--dir", type=str, required=True)
-parser.add_argument("--name", type=str, required=True)
-args = parser.parse_args()
-
-outputfolder = args.dir
-if outputfolder[-1] != "/":
-	outputfolder = outputfolder + "/"
-name = args.name
-
-params = {
+params_dict = {
 	"sys_type" : "mutations",
 	"N_patches" : 107,
+	"dt" : 0.1,
 	"t_max" : 10000,
 	"mutation_rate" : 0.003,
 	"gamma_trick" : 3,
@@ -35,7 +30,59 @@ params = {
 	"I0_params" : [27,1]
 }
 
+parser = ArgumentParser(allow_abbrev=False)
+parser.add_argument("--dir", type=str, required=True)
+parser.add_argument("--name", type=str, required=True)
+parser.add_argument("--force", type=str, default="", help="'||' separates different parameters, ':' separates key and value, '[' ',' ']' are used to assign a list to value. Example: N_patches:3||betas_params:[0.1,0.5,0.8]")
+args = parser.parse_args()
+
+forced_params = args.force
+if len(forced_params) > 0:
+	forced_params = forced_params.split("||")
+	for p in forced_params:
+		key,val = p.split(":")
+		if key not in params_dict:
+			raise RuntimeError(f"Impossible to force parameter {key}: it is not a parameter")
+		if val[0] == "[" and val[-1]=="]":
+			val = val[1:-1].split(",")
+		params_dict[key] = val
+
+outputfolder = args.dir
+if outputfolder[-1] != "/":
+	outputfolder = outputfolder + "/"
 if not os.path.isdir(outputfolder):
 	os.mkdir(outputfolder)
-with open(outputfolder+name+".json", "w") as outfile:
-	json.dump(params, outfile)
+
+name = args.name
+filename = outputfolder + name
+
+random_engine = NumpyRandomGenerator(0)
+params = Params(params_dict, random_engine.rng).__dict__
+
+try:
+	datafile = h5py.File(filename+".h5", 'a')
+	read_only = False
+except:
+	datafile = h5py.File(filename+".h5")
+	read_only = True
+finally:
+	groupname = datman.filterGroupmembersWithParams(datafile, params)
+	if groupname is None:
+		groupname = datman.createNewGroupname(datafile)
+		if read_only:
+			print(f"WARNING: {filename}.h5 cannot be modified. Consolidate these simulations before creating other parameter sets!")
+		else:
+			group = datafile.create_group(groupname, track_order=True)
+			for key,val in params.items():
+				group.attrs.create(key, val)
+	else:
+		try:
+			datman.checkAttributes(datafile[groupname], params)
+		except:
+			datafile.close()
+			raise
+	datafile.close()
+
+with open(f"{outputfolder+name}_{groupname}.json", "w") as paramsfile:
+	json.dump(params_dict, paramsfile)
+	paramsfile.write("\n")
