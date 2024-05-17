@@ -1,3 +1,4 @@
+import attr
 import pandas as pd
 import numpy as np
 import h5py
@@ -69,10 +70,14 @@ def writeDatasetInGroup(datasetname, values, group_identifier, suppress_output=F
 
 def collectAttributeFromGroup(key, group, applyfunc=None):
 	if applyfunc is None:
-		attributes = {int(string.replace("seed-","")):dataset.attrs[key] for string,dataset in group.items() if key in dataset.attrs}
+		attributes = {name : element.attrs[key] for name,element in group.items() if key in element.attrs}
 	else:
-		attributes = {int(string.replace("seed-","")):applyfunc(dataset.attrs[key]) for string,dataset in group.items() if key in dataset.attrs}
-	return pd.Series(attributes)
+		attributes = {name : applyfunc(element.attrs[key]) for name,element in group.items() if key in element.attrs}
+	try:
+		length = len(next(iter(attributes.values())))
+	except:
+		length = 1
+	return pd.DataFrame.from_dict(attributes, orient="index", columns=[key]*length)
 
 
 def recursivelyCopyAttributes(srcgrp, destgrp):
