@@ -15,4 +15,6 @@ PYBIND11_MODULE(types, m) {
 	PYBIND11_NUMPY_DTYPE(IdSequence, id, sequence);
 
 	PYBIND11_NUMPY_DTYPE(ParentChild, parent, child);
+
+	PYBIND11_NUMPY_DTYPE(IdPhi, id, phi);
 }

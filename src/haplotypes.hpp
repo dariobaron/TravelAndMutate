@@ -1,6 +1,7 @@
 #ifndef HAPLOTYPES_HPP
 #define HAPLOTYPES_HPP
 
+#include <map>
 #include <vector>
 #include <string>
 #include <random>
@@ -8,6 +9,7 @@
 #include "types.hpp"
 #include "randomcore.hpp"
 #include "sequence.hpp"
+#include "distributions.hpp"
 
 
 class Haplotypes{
@@ -18,13 +20,16 @@ private:
 	Vec<unsigned> parents_;
 	Vec<double> phi_h_;
 	std::gamma_distribution<> mut_period_;
+	GammaDistribution phi_rescaler_;
 public:
-	Haplotypes(RNGcore * rng, double mr, double k);
+	Haplotypes(RNGcore * rng, std::map<std::string,double> properties);
 	double getMutationRate() const;
 	double getPhiH(unsigned i) const;
 	unsigned getTotal() const;
 	std::string getSequence(unsigned i);
 	np_array<ParentChild> getMutationTree() const;
+	np_array<IdPhi> getAllPhi() const;
+	np_array<double> getPhiOf(const np_array<unsigned> & ids);
 	np_array<IdSequence> read(const np_array<unsigned> & ids);
 	np_array<IdSequence> readAll();
 	unsigned newMutation(unsigned i);
@@ -35,11 +40,18 @@ private:
 	void checkSequence(unsigned i);
 };
 
-Haplotypes::Haplotypes(RNGcore * rng, double mr, double k) : rng_(rng), mr_(mr) {
+Haplotypes::Haplotypes(RNGcore * rng, std::map<std::string,double> properties) : rng_(rng), mr_(properties["mutation_rate"]) {
 	// gamma distribution arbitrarily chosen
 	// parametrized with: mean = k * theta, and: variance = k * theta^2
+	double k = properties["mutation_k"];
 	double theta = 1 / mr_ / k;
 	mut_period_ = std::gamma_distribution<>(k, theta);
+	// gamma distribution arbitrarily chosen
+	// parametrized with: mean = k * theta, and: variance = k * theta^2
+	k = properties["fitness_k"];
+	theta = properties["fitness_std"] / std::sqrt(k);
+	double x0 = properties["fitness_mean"] - k * theta;
+	phi_rescaler_ = GammaDistribution(k, theta, x0);
 }
 
 double Haplotypes::getMutationRate() const{
@@ -70,6 +82,26 @@ np_array<ParentChild> Haplotypes::getMutationTree() const{
 	return tree;
 }
 
+np_array<IdPhi> Haplotypes::getAllPhi() const{
+	np_array<IdPhi> allphi(phi_h_.size());
+	auto view = allphi.mutable_unchecked<1>();
+	for (unsigned i = 0; i < phi_h_.size(); ++i){
+		view[i].id = i;
+		view[i].phi = phi_h_[i];
+	}
+	return allphi;
+}
+
+np_array<double> Haplotypes::getPhiOf(const np_array<unsigned> & ids){
+	np_array<double> phis(ids.shape(0));
+	auto view_p = phis.mutable_unchecked<1>();
+	auto view_i = ids.unchecked<1>();
+	for (unsigned i = 0; i < ids.shape(0); ++i){
+		view_p[i] = phi_h_[view_i[i]];
+	}
+	return phis;
+}
+
 np_array<IdSequence> Haplotypes::read(const np_array<unsigned> & ids){
 	np_array<IdSequence> sequences(ids.shape(0));
 	auto view_seqs = sequences.mutable_unchecked<1>();
@@ -98,7 +130,13 @@ np_array<IdSequence> Haplotypes::readAll(){
 unsigned Haplotypes::newMutation(unsigned i){
 	seqs_.emplace_back();
 	parents_.emplace_back(i);
-	phi_h_.emplace_back(1);	// fitness of the haplotype
+	if (i == -1){
+		phi_h_.emplace_back(1);
+	}
+	else{
+		double newphi = phi_h_.at(i) * phi_rescaler_(rng_->get());
+		phi_h_.emplace_back(newphi);
+	}
 	return seqs_.size()-1;
 }
 

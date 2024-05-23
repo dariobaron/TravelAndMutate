@@ -6,10 +6,12 @@ PYBIND11_MODULE(haplotypes, m) {
     py::module types = py::module::import("TravelAndMutate.types");
 
     py::class_<Haplotypes>(m, "Haplotypes")
-		.def(py::init<RNGcore*,double,double>())
+		.def(py::init<RNGcore*,std::map<std::string,double>>())
 		.def("getTotal", &Haplotypes::getTotal)
 		.def("getSequence", &Haplotypes::getSequence)
 		.def("getMutationTree", &Haplotypes::getMutationTree)
+		.def("getAllPhi", &Haplotypes::getAllPhi)
+		.def("getPhiOf", &Haplotypes::getPhiOf)
 		.def("read", &Haplotypes::read)
 		.def("readAll", &Haplotypes::readAll)
 		;

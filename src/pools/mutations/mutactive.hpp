@@ -45,8 +45,10 @@ unsigned MutActive::size() const{
 
 double MutActive::getPhi() const{
 	unsigned phi = 0;
-	for (auto & h : hosts_){
-		phi += h.size();
+	for (auto & hosts : hosts_){
+		for (auto & h : hosts){
+			phi += haplos_->getPhiH(h.evolved_mut_);
+		}
 	}
 	return phi;
 }
@@ -79,7 +81,15 @@ MutDiff MutActive::sampleInfectors(RNGcore * rng, unsigned n) const{
 	for (auto & h : hosts_){
 		tot_hosts += h.size();
 	}
-	Vec<unsigned> indices = sampleIndicesWithReplacement(rng->get(), tot_hosts, n);
+	Vec<double> weights(tot_hosts);
+	unsigned idx = 0;
+	for (auto & hosts : hosts_){
+		for (auto & h : hosts){
+			weights[idx] = haplos_->getPhiH(h.evolved_mut_);
+			++idx;
+		}
+	}
+	Vec<unsigned> indices = sampleIndicesWithReplacement(rng->get(), weights, n);
 	std::sort(indices.begin(), indices.end());
 	Vec<Host> sampled(n);
 	unsigned compartment = 0;
@@ -88,11 +98,6 @@ MutDiff MutActive::sampleInfectors(RNGcore * rng, unsigned n) const{
 		while (indices[i] >= prev_occupants + hosts_[compartment].size()){
 			prev_occupants += hosts_[compartment].size();
 			++compartment;
-			/////////////////////////
-			if (compartment == hosts_.size()){
-				throw std::runtime_error("Error in sampleWithReplacement: too many advancements in compartments");
-			}
-			/////////////////////////
 		}
 		sampled[i] = hosts_[compartment][indices[i]-prev_occupants];
 	}

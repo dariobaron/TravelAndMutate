@@ -35,7 +35,11 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 
 	recorder = Recorder(params["N_patches"])
 
-	dealer = Haplotypes(random_engine.cpprng, params["mutation_rate"], params["mutation_k"])
+	haploproperties = {
+		"mutation_rate":params["mutation_rate"], "mutation_k":params["mutation_k"],
+		"fitness_mean":params["fitness_mean"], "fitness_std":params["fitness_std"], "fitness_k":params["fitness_k"]
+	}
+	dealer = Haplotypes(random_engine.cpprng, haploproperties)
 
 	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False), params["gamma_trick"])
 	system.setRecorder(recorder)
@@ -48,27 +52,29 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	simulationtime = time.time() - starttime
 
 	starttime = time.time()
-	mutations = recorder.getInfectionTree()
+	infections = recorder.getInfectionTree()
 	trajectories = [recorder.getFullTrajectory(p) for p in range(params["N_patches"])]
 	haplotree = dealer.getMutationTree()
-	unique_haplos = np.unique(mutations["mut"])
-	unique_haplos.sort()
+#	unique_haplos = np.unique(infections["mut"])
+#	unique_haplos.sort()
 #	sequences = dealer.read(unique_haplos)
+	fitness = dealer.getAllPhi()
 	sim_attrs = {
 		"seed" : seed,
 		"exec_time" : simulationtime,
-		"survived" : mutations.shape[0]>100
+		"survived" : infections.shape[0]>100
 	}
 	postprocesstime = time.time() - starttime
 
 	starttime = time.time()
 	group_identifier = datman.createReplica(working_dir+filename, groupname, params, seed, sim_attrs, suppress_output=suppress_output)
-	datman.writeDatasetInGroup("infections", mutations, group_identifier, suppress_output)
+	datman.writeDatasetInGroup("infections", infections, group_identifier, suppress_output)
 	traj_identifier = datman.writeGroupInGroup("trajectories", group_identifier)
 	for i,trajectory in enumerate(trajectories):
 		datman.writeDatasetInGroup(str(i), trajectory, traj_identifier, suppress_output)
 	datman.writeDatasetInGroup("mutationtree", haplotree, group_identifier, suppress_output)
 #	datman.writeDatasetInGroup("sequences", sequences, group_identifier, suppress_output)
+	datman.writeDatasetInGroup("fitness", fitness, group_identifier, suppress_output)
 	storingtime = time.time() - starttime
 
 	if not suppress_output:
