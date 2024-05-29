@@ -13,6 +13,8 @@ uint64_t next_uint64(void * st);
 double next_double(void * st);
 
 class RNGcore{
+public:
+	using result_type = std::mt19937_64::result_type;
 
 protected:
 	std::mt19937_64 rng_;
@@ -36,10 +38,10 @@ public:
 	};
 
 
-	auto max(){
+	auto max() const{
 		return rng_.max();
 	}
-	auto min(){
+	auto min() const{
 		return rng_.min();
 	}
 

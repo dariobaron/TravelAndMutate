@@ -37,7 +37,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 
 	haploproperties = {
 		"mutation_rate":params["mutation_rate"], "mutation_k":params["mutation_k"],
-		"fitness_mean":params["fitness_mean"], "fitness_std":params["fitness_std"], "fitness_k":params["fitness_k"]
+		"fitness_mean":params["fitness_mean"], "fitness_scale":params["fitness_scale"], "fitness_alpha":params["fitness_alpha"], "fitness_beta":params["fitness_beta"]
 	}
 	dealer = Haplotypes(random_engine.cpprng, haploproperties)
 

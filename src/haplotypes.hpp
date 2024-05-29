@@ -20,7 +20,7 @@ private:
 	Vec<unsigned> parents_;
 	Vec<double> phi_h_;
 	std::gamma_distribution<> mut_period_;
-	GammaDistribution phi_rescaler_;
+	BetaDistribution phi_shifter_;
 public:
 	Haplotypes(RNGcore * rng, std::map<std::string,double> properties);
 	double getMutationRate() const;
@@ -46,12 +46,13 @@ Haplotypes::Haplotypes(RNGcore * rng, std::map<std::string,double> properties) :
 	double k = properties["mutation_k"];
 	double theta = 1 / mr_ / k;
 	mut_period_ = std::gamma_distribution<>(k, theta);
-	// gamma distribution arbitrarily chosen
-	// parametrized with: mean = k * theta, and: variance = k * theta^2
-	k = properties["fitness_k"];
-	theta = properties["fitness_std"] / std::sqrt(k);
-	double x0 = properties["fitness_mean"] - k * theta;
-	phi_rescaler_ = GammaDistribution(k, theta, x0);
+	// beta distribution arbitrarily chosen
+	// parametrized with: mean = alpha / (alpha+beta)
+	double alpha = properties["fitness_alpha"];
+	double beta = properties["fitness_beta"];
+	double scale = properties["fitness_scale"];
+	double x0 = scale * alpha / (alpha + beta) - properties["fitness_mean"];
+	phi_shifter_ = BetaDistribution(alpha, beta, x0, scale);
 }
 
 double Haplotypes::getMutationRate() const{
@@ -134,14 +135,14 @@ unsigned Haplotypes::newMutation(unsigned i){
 		phi_h_.emplace_back(1);
 	}
 	else{
-		double newphi = phi_h_.at(i) * phi_rescaler_(rng_->get());
+		double newphi = phi_h_.at(i) + phi_shifter_(*rng_);
 		phi_h_.emplace_back(newphi);
 	}
 	return seqs_.size()-1;
 }
 
 Time Haplotypes::nextMutation(){
-	return mut_period_(rng_->get());
+	return mut_period_(*rng_);
 }
 
 void Haplotypes::computeIthSequence(unsigned i){
