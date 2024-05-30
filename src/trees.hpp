@@ -12,23 +12,21 @@ class TreeBalanceProxy{
 	unsigned tips_;
 public:
 	TreeBalanceProxy(Vec<unsigned> shape) : tree_(shape) {};
-	friend TreeBalanceProxy treebalanceTree(const Vec<const Vec<InfecTree>*> & trees);
+	friend TreeBalanceProxy treebalanceTree(const Vec<InfecTree> & tree);
 	np_array<unsigned> getTree() const	{	return tree_;		};
 	unsigned getInternals() const		{	return internals_;	};
 	unsigned getTips() const			{	return tips_;		};
 };
 
-TreeBalanceProxy treebalanceTree(const Vec<const Vec<InfecTree>*> & trees){
+TreeBalanceProxy treebalanceTree(const Vec<InfecTree> & tree){
 	// checking that there is only one root
 	Individual root;
 	auto checkInfectedByExtern = [](const InfecTree & i){ return i.inf_loc == -1 && i.inf_ID == -1; };
 	unsigned nroots = 0;
-	for (auto & tree : trees){
-		for (auto & i : *tree){
-			if (checkInfectedByExtern(i)){
-				++nroots;
-				root = Individual(i.loc, i.ID);
-			}
+	for (auto & i : tree){
+		if (checkInfectedByExtern(i)){
+			++nroots;
+			root = Individual(i.loc, i.ID);
 		}
 	}
 	if (nroots > 1){
@@ -38,33 +36,27 @@ TreeBalanceProxy treebalanceTree(const Vec<const Vec<InfecTree>*> & trees){
 		throw std::logic_error("There is no root, where does the epidemic come from?");
 	}
 	// creating return array
-	unsigned tot_edges = 0;
-	for (auto & tree : trees){
-		tot_edges += tree->size();
-	}
+	unsigned tot_edges = tree.size();
 	tot_edges -= nroots;
 	TreeBalanceProxy treeTB(Vec<unsigned>({tot_edges,2}));
 	// creating references to the individuals
 	std::map<Individual,unsigned,IndividualCompare> internal, tips;
-	// looping over all the patches
-	for (auto & tree : trees){
-		// looping over all the contagions
-		for (auto & edge : *tree){
-			// performing action only on non-root nodes
-			if (!checkInfectedByExtern(edge)){
-				// adding the infector to the internal pool
-				// and removing it from the tips, if present
-				Individual infector(edge.inf_loc, edge.inf_ID);
-				internal[infector] = 0;
-				auto it = tips.find(infector);
-				if (it != tips.end()){
-					tips.erase(it);
-				}
-				// adding the infectee to the tips pool if it is not internal already
-				Individual infectee(edge.loc, edge.ID);
-				if (!internal.contains(infectee)){
-					tips[infectee] = 0;
-				}
+	// looping over all the contagions
+	for (auto & edge : tree){
+		// performing action only on non-root nodes
+		if (!checkInfectedByExtern(edge)){
+			// adding the infector to the internal pool
+			// and removing it from the tips, if present
+			Individual infector(edge.inf_loc, edge.inf_ID);
+			internal[infector] = 0;
+			auto it = tips.find(infector);
+			if (it != tips.end()){
+				tips.erase(it);
+			}
+			// adding the infectee to the tips pool if it is not internal already
+			Individual infectee(edge.loc, edge.ID);
+			if (!internal.contains(infectee)){
+				tips[infectee] = 0;
 			}
 		}
 	}
@@ -95,18 +87,15 @@ TreeBalanceProxy treebalanceTree(const Vec<const Vec<InfecTree>*> & trees){
 	}
 	// converting all the values
 	unsigned i = 0;
-	// looping over all the patches
-	for (auto & tree : trees){
-		// looping over all the contagions
-		for (auto & edge : *tree){
-			// performing action only on non-root nodes
-			if (!checkInfectedByExtern(edge)){
-				Individual infector(edge.inf_loc, edge.inf_ID);
-				treeTB.tree_.mutable_at(i,0) = all_ind.at(infector);
-				Individual infectee(edge.loc, edge.ID);
-				treeTB.tree_.mutable_at(i,1) = all_ind.at(infectee);
-				++i;
-			}
+	// looping over all the contagions
+	for (auto & edge : tree){
+		// performing action only on non-root nodes
+		if (!checkInfectedByExtern(edge)){
+			Individual infector(edge.inf_loc, edge.inf_ID);
+			treeTB.tree_.mutable_at(i,0) = all_ind.at(infector);
+			Individual infectee(edge.loc, edge.ID);
+			treeTB.tree_.mutable_at(i,1) = all_ind.at(infectee);
+			++i;
 		}
 	}
 	return treeTB;

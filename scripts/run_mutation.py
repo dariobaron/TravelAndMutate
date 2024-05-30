@@ -11,6 +11,7 @@ from argparse import ArgumentParser
 from TravelAndMutate.paramsmanager import Params
 from TravelAndMutate.randominterface import NumpyRandomGenerator
 from TravelAndMutate.haplotypes import Haplotypes
+from TravelAndMutate.recorder import Recorder
 from TravelAndMutate.system import SystemMutations as System
 import TravelAndMutate.datamanager as datman
 
@@ -32,9 +33,12 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	patch_params["mu"] = params["mus"]
 	patch_params["I0"] = params["I0"].astype("u4")
 
+	recorder = Recorder(params["N_patches"])
+
 	dealer = Haplotypes(random_engine.cpprng, params["mutation_rate"], params["mutation_k"])
 
 	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False), params["gamma_trick"])
+	system.setRecorder(recorder)
 	system.setHaplotypes(dealer)
 	system.seedEpidemic()
 	system.setVerbosity(not suppress_output)
@@ -44,16 +48,12 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	simulationtime = time.time() - starttime
 
 	starttime = time.time()
-	mutations = recfunctions.stack_arrays(
-		[system.getMutationTree(i) for i in range(params["N_patches"])],
-		defaults=None, usemask=False, asrecarray=True, autoconvert=False
-	)
-	mutations.sort(order="t")
+	mutations = recorder.getMutationTree()
 	sim_attrs = {
 		"seed" : seed,
 		"exec_time" : simulationtime
 	}
-	trajectories = [system.getFullTrajectory(p) for p in range(params["N_patches"])]
+	trajectories = [recorder.getFullTrajectory(p) for p in range(params["N_patches"])]
 	haplotree = dealer.getMutationTree()
 	unique_haplos = np.unique(mutations["mut"])
 	unique_haplos.sort()
