@@ -14,9 +14,13 @@ params_dict = {
 	"N_patches" : 107,
 	"dt" : 0.1,
 	"t_max" : 10000,
-	"mutation_rate" : 0.003,
-	"mutation_k" : 10,
 	"gamma_trick" : 3,
+	"mutation_rate" : 0.005,
+	"mutation_k" : 10,
+	"fitness_mean" : 0,
+	"fitness_scale" : 1,
+	"fitness_alpha" : 2,
+	"fitness_beta" : 15,
 	"Ns_setter" : "fromcsv",
 	"Ns_params" : "inputparams/Ns/italy_small.csv",
 	"commuting_setter" : "gravity",
@@ -30,6 +34,7 @@ params_dict = {
 	"I0_setter" : "onehot",
 	"I0_params" : [27,1]
 }
+
 
 def strToFloatOrInt(value):
 	try:

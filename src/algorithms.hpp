@@ -49,6 +49,15 @@ std::vector<unsigned> sampleIndicesWithReplacement(RandomEngine & rng, unsigned 
 	}
 	return indices;
 }
+template<typename RandomEngine>
+std::vector<unsigned> sampleIndicesWithReplacement(RandomEngine & rng, const std::vector<double> & weights, unsigned n){
+	std::discrete_distribution<unsigned> Distr(weights.begin(), weights.end());
+	std::vector<unsigned> indices(n);
+	for (auto & i : indices){
+		i = Distr(rng);
+	}
+	return indices;
+}
 
 
 template<typename T>

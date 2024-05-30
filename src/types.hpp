@@ -64,4 +64,9 @@ struct ParentChild{
 	unsigned child;
 };
 
+struct IdPhi{
+	unsigned id;
+	double phi;
+};
+
 #endif
