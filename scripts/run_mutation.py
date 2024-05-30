@@ -11,7 +11,7 @@ from argparse import ArgumentParser
 from TravelAndMutate.paramsmanager import Params
 from TravelAndMutate.randominterface import NumpyRandomGenerator
 from TravelAndMutate.haplotypes import Haplotypes
-from TravelAndMutate.recorder import Recorder
+from TravelAndMutate.recorder import RecorderMutations as Recorder
 from TravelAndMutate.system import SystemMutations as System
 import TravelAndMutate.datamanager as datman
 
@@ -48,16 +48,17 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	simulationtime = time.time() - starttime
 
 	starttime = time.time()
-	mutations = recorder.getMutationTree()
-	sim_attrs = {
-		"seed" : seed,
-		"exec_time" : simulationtime
-	}
+	mutations = recorder.getInfectionTree()
 	trajectories = [recorder.getFullTrajectory(p) for p in range(params["N_patches"])]
 	haplotree = dealer.getMutationTree()
 	unique_haplos = np.unique(mutations["mut"])
 	unique_haplos.sort()
 #	sequences = dealer.read(unique_haplos)
+	sim_attrs = {
+		"seed" : seed,
+		"exec_time" : simulationtime,
+		"survived" : mutations.shape[0]>100
+	}
 	postprocesstime = time.time() - starttime
 
 	starttime = time.time()

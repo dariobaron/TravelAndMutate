@@ -22,7 +22,7 @@ class System{
 	bool verbose_;
 public:
 	System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties, unsigned gamma_trick);
-	void setRecorder(Recorder * recorder);
+	void setRecorder(Recorder<PoolType> * recorder);
 	void setHaplotypes(Haplotypes * seqdealer);
 	void setVerbosity(bool verbose);
 	void seedEpidemic();
@@ -57,7 +57,7 @@ System<PoolType>::System(RNGcore * rng, const np_array<double> & commuting_matri
 
 
 template<Pool PoolType>
-void System<PoolType>::setRecorder(Recorder * recorder){
+void System<PoolType>::setRecorder(Recorder<PoolType> * recorder){
 	for (auto & p : patches_){
 		p.setRecorder(recorder);
 	}

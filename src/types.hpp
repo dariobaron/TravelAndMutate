@@ -29,17 +29,17 @@ struct FullTraj{
 			t(t), S(S), E(E), I(I), R(R), Enew(Enew), Inew(Inew) {}
 };
 
-struct InfecTree{
+struct InfectIndiv{
 	Time t;
 	PatchID loc;
 	unsigned ID;
 	PatchID inf_loc;
 	unsigned inf_ID;
-	InfecTree(Time t, PatchID loc, unsigned ID, PatchID inf_loc, unsigned inf_ID) :
+	InfectIndiv(Time t, PatchID loc, unsigned ID, PatchID inf_loc, unsigned inf_ID) :
 			t(t), loc(loc), ID(ID), inf_loc(inf_loc), inf_ID(inf_ID) {}
 };
 
-struct MutTree{
+struct InfectMut{
 	Time t;
 	PatchID loc;
 	unsigned ID;
@@ -47,7 +47,7 @@ struct MutTree{
 	PatchID inf_loc;
 	unsigned inf_ID;
 	unsigned inf_mut;
-	MutTree(Time t, PatchID loc, unsigned ID, unsigned mut, PatchID inf_loc, unsigned inf_ID, unsigned inf_mut) : 
+	InfectMut(Time t, PatchID loc, unsigned ID, unsigned mut, PatchID inf_loc, unsigned inf_ID, unsigned inf_mut) : 
 			t(t), loc(loc), ID(ID), mut(mut), inf_loc(inf_loc), inf_ID(inf_ID), inf_mut(inf_mut) {}
 };
 
