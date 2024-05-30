@@ -3,35 +3,39 @@
 
 #include <vector>
 #include "types.hpp"
+#include "trees.hpp"
 
 class Recorder{
-
-public:
-	Vec<FullTraj> dyn_;
+	Vec<Vec<FullTraj>> dyn_;
 	Vec<InfecTree> tree_;
 	Vec<MutTree> mutations_;
 public:
+	Recorder(unsigned Npatches);
 	template<typename ...Args>
-	void push_trajectory(Args ... args);
-	np_array<FullTraj> getFullTrajectory() const;
+	void push_trajectory(PatchID patch, Args ... args);
+	np_array<FullTraj> getFullTrajectory(PatchID patch) const;
 	template<typename ...Args>
 	void push_tree(Args ... args);
 	np_array<InfecTree> getInfectionTree() const;
+	auto getTreeBalance() const;
 	template<typename ...Args>
 	void push_host(Args ... args);
 	np_array<MutTree> getMutationTree() const;
 };
 
+Recorder::Recorder(unsigned Npatches) : dyn_(Npatches) {}
+
 template<typename ...Args>
-void Recorder::push_trajectory(Args ... args){
-	dyn_.emplace_back(args...);
+void Recorder::push_trajectory(PatchID patch, Args ... args){
+	dyn_[patch].emplace_back(args...);
 }
 
-np_array<FullTraj> Recorder::getFullTrajectory() const{
-	np_array<FullTraj> records(dyn_.size());
+np_array<FullTraj> Recorder::getFullTrajectory(PatchID patch) const{
+	const Vec<FullTraj> & dynamics = dyn_[patch];
+	np_array<FullTraj> records(dynamics.size());
 	auto view = records.mutable_unchecked<1>();
-	for (unsigned i = 0; i < dyn_.size(); ++i){
-		view(i) = dyn_[i];
+	for (unsigned i = 0; i < dynamics.size(); ++i){
+		view(i) = dynamics[i];
 	}
 	return records;
 }
@@ -48,6 +52,10 @@ np_array<InfecTree> Recorder::getInfectionTree() const{
 		view(i) = tree_[i];
 	}
 	return records;
+}
+
+auto Recorder::getTreeBalance() const{
+	return treebalanceTree(tree_);
 }
 
 template<typename ...Args>

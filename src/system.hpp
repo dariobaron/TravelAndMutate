@@ -22,14 +22,11 @@ class System{
 	bool verbose_;
 public:
 	System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties, unsigned gamma_trick);
+	void setRecorder(Recorder * recorder);
+	void setHaplotypes(Haplotypes * seqdealer);
 	void setVerbosity(bool verbose);
 	void seedEpidemic();
 	void spreadForTime(Time tmax);
-	auto getFullTrajectory(unsigned i) const;
-	auto getInfectionTree(unsigned i) const;
-	auto getTreeBalance() const;
-	auto getMutationTree(unsigned i) const;
-	void setHaplotypes(Haplotypes * seqdealer);
 private:
 	bool isEpidemicAlive() const;
 	void checkHaploDealer() const;
@@ -55,6 +52,23 @@ System<PoolType>::System(RNGcore * rng, const np_array<double> & commuting_matri
 	for (unsigned i = 0; i < nPatches; ++i){
 		c_ij_.emplace_back(view.data(i,0), view.data(i,nPatches));
 		patches_.emplace_back(rng_, i, gamma_trick, properties.at(i));
+	}
+}
+
+
+template<Pool PoolType>
+void System<PoolType>::setRecorder(Recorder * recorder){
+	for (auto & p : patches_){
+		p.setRecorder(recorder);
+	}
+}
+
+
+template<Pool PoolType>
+void System<PoolType>::setHaplotypes(Haplotypes * haplos){
+	haplos_ = haplos;
+	for (auto & p : patches_){
+		p.setHaplotypes(haplos_);
 	}
 }
 
@@ -104,43 +118,6 @@ void System<PoolType>::spreadForTime(Time tmax){
 	}
 	if (verbose_){
 		py::print("Simulation finished in", t_, "steps", py::arg("flush")=true);
-	}
-}
-
-
-template<Pool PoolType>
-auto System<PoolType>::getFullTrajectory(unsigned i) const{
-	return patches_[i].getRecorder().getFullTrajectory();
-}
-
-
-template<Pool PoolType>
-auto System<PoolType>::getInfectionTree(unsigned i) const{
-	return patches_[i].getRecorder().getInfectionTree();
-}
-
-
-template<Pool PoolType>
-auto System<PoolType>::getTreeBalance() const{
-	Vec<const Vec<InfecTree> *> trees;
-	for (auto & p : patches_){
-		trees.push_back(&p.getRecorder().tree_);
-	}
-	return treebalanceTree(trees);
-}
-
-
-template<Pool PoolType>
-auto System<PoolType>::getMutationTree(unsigned i) const{
-	return patches_[i].getRecorder().getMutationTree();
-}
-
-
-template<Pool PoolType>
-void System<PoolType>::setHaplotypes(Haplotypes * haplos){
-	haplos_ = haplos;
-	for (auto & p : patches_){
-		p.setHaplotypes(haplos_);
 	}
 }
 
