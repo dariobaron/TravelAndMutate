@@ -2,35 +2,39 @@
 #define RECORDER_HPP
 
 #include <vector>
+#include "pools.hpp"
 #include "types.hpp"
 #include "trees.hpp"
 
+template<Pool PoolType>
 class Recorder{
+public:
+	using InfectRecord = PoolType::InfectRec;
+private:
 	Vec<Vec<FullTraj>> dyn_;
-	Vec<InfecTree> tree_;
-	Vec<MutTree> mutations_;
+	Vec<InfectRecord> infections_;
 public:
 	Recorder(unsigned Npatches);
 	template<typename ...Args>
-	void push_trajectory(PatchID patch, Args ... args);
-	np_array<FullTraj> getFullTrajectory(PatchID patch) const;
+	void pushTrajectory(PatchID patch, Args ... args);
+	auto getFullTrajectory(PatchID patch) const;
 	template<typename ...Args>
-	void push_tree(Args ... args);
-	np_array<InfecTree> getInfectionTree() const;
+	void pushInfection(Args ... args);
+	auto getInfectionTree() const;
 	auto getTreeBalance() const;
-	template<typename ...Args>
-	void push_host(Args ... args);
-	np_array<MutTree> getMutationTree() const;
 };
 
-Recorder::Recorder(unsigned Npatches) : dyn_(Npatches) {}
+template<Pool PoolType>
+Recorder<PoolType>::Recorder(unsigned Npatches) : dyn_(Npatches) {}
 
+template<Pool PoolType>
 template<typename ...Args>
-void Recorder::push_trajectory(PatchID patch, Args ... args){
+void Recorder<PoolType>::pushTrajectory(PatchID patch, Args ... args){
 	dyn_[patch].emplace_back(args...);
 }
 
-np_array<FullTraj> Recorder::getFullTrajectory(PatchID patch) const{
+template<Pool PoolType>
+auto Recorder<PoolType>::getFullTrajectory(PatchID patch) const{
 	const Vec<FullTraj> & dynamics = dyn_[patch];
 	np_array<FullTraj> records(dynamics.size());
 	auto view = records.mutable_unchecked<1>();
@@ -40,36 +44,30 @@ np_array<FullTraj> Recorder::getFullTrajectory(PatchID patch) const{
 	return records;
 }
 
+template<Pool PoolType>
 template<typename ...Args>
-void Recorder::push_tree(Args ... args){
-	tree_.emplace_back(args...);
+void Recorder<PoolType>::pushInfection(Args ... args){
+	infections_.emplace_back(args...);
 }
+template<>
+template<typename ...Args>
+void Recorder<Mix>::pushInfection(Args ... args){}
 
-np_array<InfecTree> Recorder::getInfectionTree() const{
-	np_array<InfecTree> records(tree_.size());
-	auto view = records.mutable_unchecked<1>();
-	for (unsigned i = 0; i < tree_.size(); ++i){
-		view(i) = tree_[i];
+template<Pool PoolType>
+auto Recorder<PoolType>::getInfectionTree() const{
+	np_array<InfectRecord> records(infections_.size());
+	auto view = records.template mutable_unchecked<1>();
+	for (unsigned i = 0; i < infections_.size(); ++i){
+		view(i) = infections_[i];
 	}
 	return records;
 }
+template<>
+auto Recorder<Mix>::getInfectionTree() const{}
 
-auto Recorder::getTreeBalance() const{
-	return treebalanceTree(tree_);
-}
-
-template<typename ...Args>
-void Recorder::push_host(Args ... args){
-	mutations_.emplace_back(args...);
-}
-
-np_array<MutTree> Recorder::getMutationTree() const{
-	np_array<MutTree> records(mutations_.size());
-	auto view = records.mutable_unchecked<1>();
-	for (unsigned i = 0; i < mutations_.size(); ++i){
-		view(i) = mutations_[i];
-	}
-	return records;
+template<Pool PoolType>
+auto Recorder<PoolType>::getTreeBalance() const{
+	return treebalanceTree(infections_);
 }
 
 

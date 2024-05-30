@@ -12,16 +12,19 @@ class TreeBalanceProxy{
 	unsigned tips_;
 public:
 	TreeBalanceProxy(Vec<unsigned> shape) : tree_(shape) {};
-	friend TreeBalanceProxy treebalanceTree(const Vec<InfecTree> & tree);
+	template<typename InfectType>
+	friend TreeBalanceProxy treebalanceTree(const Vec<InfectType> & tree);
 	np_array<unsigned> getTree() const	{	return tree_;		};
 	unsigned getInternals() const		{	return internals_;	};
 	unsigned getTips() const			{	return tips_;		};
 };
 
-TreeBalanceProxy treebalanceTree(const Vec<InfecTree> & tree){
+
+template<typename InfectType>
+TreeBalanceProxy treebalanceTree(const Vec<InfectType> & tree){
 	// checking that there is only one root
 	Individual root;
-	auto checkInfectedByExtern = [](const InfecTree & i){ return i.inf_loc == -1 && i.inf_ID == -1; };
+	auto checkInfectedByExtern = [](const InfectType & i){ return i.inf_loc == -1 && i.inf_ID == -1; };
 	unsigned nroots = 0;
 	for (auto & i : tree){
 		if (checkInfectedByExtern(i)){

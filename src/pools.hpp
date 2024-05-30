@@ -46,6 +46,7 @@ struct Mix{
 	using Active = MixPool;
 	using Passive = MixPool;
 	using Diff = MixPool;
+	using InfectRec = unsigned;
 };
 
 
@@ -53,6 +54,7 @@ struct Individuals{
 	using Active = IndivActive;
 	using Passive = IndivPassive;
 	using Diff = IndivDiff;
+	using InfectRec = InfectIndiv;
 };
 
 
@@ -60,6 +62,7 @@ struct Mutations{
 	using Active = MutActive;
 	using Passive = MutPassive;
 	using Diff = MutDiff;
+	using InfectRec = InfectMut;
 };
 
 #endif

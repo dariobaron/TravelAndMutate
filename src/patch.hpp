@@ -11,7 +11,7 @@
 template<Pool PoolType>
 class Patch{
 	RNGcore * rng_;
-	Recorder * rec_;
+	Recorder<PoolType> * rec_;
 	unsigned N_;
 	double beta_;
 	double epsilon_;
@@ -24,7 +24,7 @@ class Patch{
 public:
 	Patch(RNGcore * rng, PatchID patch_id, unsigned gamma_trick, PatchProperties prop);
 	double getRho() const;
-	void setRecorder(Recorder * recorder);
+	void setRecorder(Recorder<PoolType> * recorder);
 	void setHaplotypes(Haplotypes * seqdealer);
 	void seedEpidemic();
 	Vec<unsigned> computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const;
@@ -52,7 +52,7 @@ double Patch<PoolType>::getRho() const{
 
 
 template<Pool PoolType>
-void Patch<PoolType>::setRecorder(Recorder * recorder){
+void Patch<PoolType>::setRecorder(Recorder<PoolType> * recorder){
 	rec_ = recorder;
 }
 
@@ -70,12 +70,12 @@ void Patch<PoolType>::seedEpidemic(){
 	Enew_ = S_.generate(0, I0_);
 	if constexpr (std::is_same<PoolType,Individuals>::value){
 		for (auto & i : Enew_.getIndividuals()){
-			rec_->push_tree(Time(0), i.patch_, i.id_, i.infector_patch_, i.infector_id_);
+			rec_->pushInfection(Time(0), i.patch_, i.id_, i.infector_patch_, i.infector_id_);
 		}
 	}
 	if constexpr (std::is_same<PoolType,Mutations>::value){
 		for (auto & i : Enew_.getHosts()){
-			rec_->push_host(Time(0), i.patch_, i.id_, i.mut_, i.infector_patch_, i.infector_id_, i.infector_mut_);
+			rec_->pushInfection(Time(0), i.patch_, i.id_, i.mut_, i.infector_patch_, i.infector_id_, i.infector_mut_);
 		}
 	}
 	Enew_.moveFromTo(S_, E_);
@@ -130,17 +130,17 @@ void Patch<PoolType>::update(Time t){
 	Inew_.moveFromTo(E_, I_);
 	E_.shift(rng_);
 	Enew_.moveFromTo(S_, E_);
-	rec_->push_trajectory(patch_id_, t, S_.size(), E_.size(), I_.size(), R_.size(), Enew_.size(), Inew_.size());
+	rec_->pushTrajectory(patch_id_, t, S_.size(), E_.size(), I_.size(), R_.size(), Enew_.size(), Inew_.size());
 	if constexpr (std::is_same<PoolType,Individuals>::value){
 		for (auto & i : Enew_.getIndividuals()){
-			rec_->push_tree(t, i.patch_, i.id_, i.infector_patch_, i.infector_id_);
+			rec_->pushInfection(t, i.patch_, i.id_, i.infector_patch_, i.infector_id_);
 		}
 	}
 	if constexpr (std::is_same<PoolType,Mutations>::value){
 		E_.updateHaplotypes(t);
 		I_.updateHaplotypes(t);
 		for (auto & i : Enew_.getHosts()){
-			rec_->push_host(t, i.patch_, i.id_, i.mut_, i.infector_patch_, i.infector_id_, i.infector_mut_);
+			rec_->pushInfection(t, i.patch_, i.id_, i.mut_, i.infector_patch_, i.infector_id_, i.infector_mut_);
 		}
 	}
 	Enew_.clear();
