@@ -94,36 +94,43 @@ def checkAttributes(group, params_dict):
 	for key,val in params_dict.items():
 		if np.any(val != group.attrs[key]):
 			raise RuntimeError(f"Attribute value of {key} in {group.name} mismatch the required value {val}")
-		
+	return
 
-def consolidateH5(inputfilename, outputfilename, suppress_output=False):
-	infilenames = sorted(glob.glob(inputfilename+f"_*_seed-*.h5"))
+
+def consolidateH5(inputbasename, outfilename, suppress_output=False):
+	infilenames = sorted(glob.glob(inputbasename+"_*_seed-*.h5"))
 	toremove = []
 	groupnames = [f.split("_")[-2] for f in infilenames]
-	outfilename = outputfilename + ".h5"
 	overwritten = []
-	with h5py.File(outfilename, "a") as outfile:
-		for i,infilename in enumerate(tqdm(infilenames, ncols=80, leave=False)):
-			with h5py.File(infilename) as infile:
-				ingroup = infile.require_group(groupnames[i])
-				params_dict = dict(ingroup.attrs)
-				groupname = filterGroupmembersWithParams(outfile, params_dict)
-				if groupname is None:
-					infile.copy(infile[groupnames[i]], outfile, name=groupnames[i], expand_soft=True, expand_external=True, expand_refs=True, without_attrs=True)
-					recursivelyCopyAttributes(infile[groupnames[i]], outfile[groupnames[i]])
-					toremove.append(infilename)
-				elif groupname == groupnames[i]:
-					outgroup = outfile.require_group(groupname)
-					checkAttributes(ingroup, outgroup.attrs)
-					subgroupname = list(ingroup.keys())[0]
-					if subgroupname in outgroup:
-						overwritten.append(subgroupname)
-						del outgroup[subgroupname]
-					infile.copy(ingroup[subgroupname], outgroup, name=subgroupname, expand_soft=True, expand_external=True, expand_refs=True, without_attrs=True)
-					recursivelyCopyAttributes(ingroup[subgroupname], outgroup[subgroupname])
-					toremove.append(infilename)
-				else:
-					raise RuntimeError(f"Group-name mismatch ({groupname} vs {groupnames[i]}) for params: {params_dict}")
+	for i,infilename in enumerate(tqdm(infilenames, ncols=80, leave=False)):
+		infile = h5py.File(infilename)
+		outfile = h5py.File(outfilename, "a")
+		try:
+			ingroup = infile.require_group(groupnames[i])
+			params_dict = dict(ingroup.attrs)
+			groupname = filterGroupmembersWithParams(outfile, params_dict)
+			if groupname is None:
+				infile.copy(infile[groupnames[i]], outfile, name=groupnames[i], expand_soft=True, expand_external=True, expand_refs=True, without_attrs=True)
+				recursivelyCopyAttributes(infile[groupnames[i]], outfile[groupnames[i]])
+				toremove.append(infilename)
+			elif groupname == groupnames[i]:
+				outgroup = outfile.require_group(groupname)
+				checkAttributes(ingroup, outgroup.attrs)
+				subgroupname = list(ingroup.keys())[0]
+				if subgroupname in outgroup:
+					overwritten.append(subgroupname)
+					del outgroup[subgroupname]
+				infile.copy(ingroup[subgroupname], outgroup, name=subgroupname, expand_soft=True, expand_external=True, expand_refs=True, without_attrs=True)
+				recursivelyCopyAttributes(ingroup[subgroupname], outgroup[subgroupname])
+				toremove.append(infilename)
+			else:
+				raise RuntimeError(f"Group-name mismatch ({groupname} vs {groupnames[i]}) for params: {params_dict}")
+			infile.close()
+			outfile.close()
+		except:
+			infile.close()
+			outfile.close()
+			raise
 	for f in toremove:
 		os.remove(f)
 	if len(overwritten) > 0:
