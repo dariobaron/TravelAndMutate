@@ -8,14 +8,14 @@ from TravelAndMutate.datamanager import consolidateH5
 
 if __name__ == "__main__":
 	parser = ArgumentParser(allow_abbrev=False)
-	parser.add_argument("--dir", type=str, required=True)
-	parser.add_argument("--name", type=str, required=True)
+	parser.add_argument("--outfile", type=str, required=True)
 	parser.add_argument("--inputnamebase", type=str, default="")
 	args = parser.parse_args()
-	directory = args.dir
-	if directory[-1] != "/":
-		directory = directory + "/"
-	outputfilename = directory + args.name
+	outfilename = args.outfile
+	if outfilename[-3:] != ".h5":
+		raise RuntimeError("Output filename must end with '.h5'")
+	if not os.path.isfile(outfilename):
+		print(f"{outfilename} does not exist. Creating it!")
 	if args.inputnamebase == "":
-		inputnamebase = outputfilename
-	consolidateH5(inputnamebase, outputfilename)
+		inputnamebase = outfilename.replace(".h5", "")
+	consolidateH5(inputnamebase, outfilename)
