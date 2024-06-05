@@ -1,55 +1,90 @@
+from matplotlib.backend_bases import key_press_handler
 import numpy as np
 import pandas as pd
 import h5py
 
 class Params:
-	def __init__(self, params_dict, rng):
+	def __init__(self, params_dict, rng=None):
+		self.group = {}
+		self.sim = {}
 		# dummy inits
 		self.N_patches = 0
 		self.Ns = []
 		# single-valued parameters
 		updater = {key:val for key,val in params_dict.items() if "_setter" not in key and "_params" not in key}
 		self.__dict__.update(updater)
+		self.group.update(updater)
 		# multi-valued parameters
 		setter_parameters = {key.replace("_setter",""):val for key,val in params_dict.items() if "_setter" in key}
 		params_parameters = {key.replace("_params",""):val for key,val in params_dict.items() if "_params" in key}
 		if list(setter_parameters.keys()) != list(params_parameters.keys()):
 			raise ValueError(f"Parameters types and params mismatch:\n{list(setter_parameters.keys())}\nvs\n{list(params_parameters.keys())}")
 		### manually imposing precedence on dependent parameters
+		precedence = ["Ns"]
 		updater = {}
-		try:
-			updater["Ns"] = getattr(self, setter_parameters["Ns"])(rng, *params_parameters["Ns"])
-		except:
-			updater["Ns"] = getattr(self, setter_parameters["Ns"])(rng, params_parameters["Ns"])
-		self.__dict__.update(updater)
+		for key in precedence:
+			val = setter_parameters[key]
+			func = getattr(self, val)
+			if val[:4] == "rnd_":
+				try:
+					updater[key] = func(rng, *params_parameters[key])
+				except:
+					updater[key] = func(rng, params_parameters[key])
+				self.__dict__.update(updater)
+				self.sim.update(updater)
+			else:
+				try:
+					updater[key] = func(*params_parameters[key])
+				except:
+					updater[key] = func(params_parameters[key])
+				self.__dict__.update(updater)
+				self.group.update(updater)
+			updater = {}
 		### updating all the other parameters
-		updater = {}
 		for key,val in setter_parameters.items():
-			if key == "Ns":
+			if key in precedence:
 				continue
 			func = getattr(self, val)
-			try:
-				updater[key] = func(rng, *params_parameters[key])
-			except:
-				updater[key] = func(rng, params_parameters[key])
-		self.__dict__.update(updater)
+			if val[:4] == "rnd_":
+				try:
+					updater[key] = func(rng, *params_parameters[key])
+				except:
+					updater[key] = func(rng, params_parameters[key])
+				self.__dict__.update(updater)
+				self.sim.update(updater)
+			else:
+				try:
+					updater[key] = func(*params_parameters[key])
+				except:
+					updater[key] = func(params_parameters[key])
+				self.__dict__.update(updater)
+				self.group.update(updater)
+			updater = {}
 
+	def __getitem__(self, arg):
+		return self.__dict__[arg]
 
-	def provided(self, rng, *values):
+	def getGroupParams(self):
+		return self.group
+	
+	def getSimParams(self):
+		return self.sim
+
+	def provided(self, *values):
 		return np.array(values)
 	
-	def delta(self, rng, value):
+	def delta(self, value):
 		return np.full(self.N_patches, value)
 	
-	def onehot(self, rng, idx, value):
+	def onehot(self, idx, value):
 		arr = np.zeros(self.N_patches)
 		arr[idx] = value
 		return arr
 
-	def fromcsv(self, rng, filename):
+	def fromcsv(self, filename):
 		return pd.read_csv(filename).to_numpy().squeeze()
 	
-	def fromh5(self, rng, filename, pathtodataset):
+	def fromh5(self, filename, pathtodataset):
 		with h5py.File(filename, "r") as inputfile:
 			values = inputfile[pathtodataset]
 			if isinstance(values, h5py.Dataset):
@@ -57,20 +92,3 @@ class Params:
 			else:
 				raise RuntimeError(f"{pathtodataset} in H5File {filename} is not a dataset")
 		return values
-
-	def gravity(self, rng, scale, alpha, gamma, r, file_of_distances):
-		dist = self.fromcsv(rng, file_of_distances)
-		c_ij = np.empty((self.N_patches,self.N_patches))
-		for i in range(self.N_patches):
-			for j in range(self.N_patches):
-				if i == j:
-					c_ij[i,j] = 1
-				else:
-					c_ij[i,j] = self.Ns[j]**gamma * self.Ns[i]**(alpha-1) / np.exp(1/r*dist[i,j])
-		outdiagmean = (np.sum(c_ij) - np.sum(np.diag(c_ij))) / (self.N_patches - 1)**2
-		for i in range(self.N_patches):
-			for j in range(self.N_patches):
-				if i != j:
-					c_ij[i,j] = c_ij[i,j] / outdiagmean * scale
-		return c_ij
-	
