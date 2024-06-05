@@ -25,7 +25,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 
 	random_engine = NumpyRandomGenerator(seed)
 	
-	params = Params(params_dict, random_engine.rng).__dict__
+	params = Params(params_dict, random_engine.rng)
 	patch_params = pd.DataFrame()
 	patch_params["N"] = params["Ns"].astype("u4")
 	patch_params["beta"] = params["betas"]
@@ -64,10 +64,11 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 		"exec_time" : simulationtime,
 		"survived" : infections.shape[0]>100
 	}
+	sim_attrs.update(params.getSimParams())
 	postprocesstime = time.time() - starttime
 
 	starttime = time.time()
-	group_identifier = datman.createReplica(working_dir+filename, groupname, params, seed, sim_attrs, suppress_output=suppress_output)
+	group_identifier = datman.createReplica(working_dir+filename, groupname, params.getGroupParams(), seed, sim_attrs, suppress_output=suppress_output)
 	datman.writeDatasetInGroup("infections", infections, group_identifier, suppress_output)
 	traj_identifier = datman.writeGroupInGroup("trajectories", group_identifier)
 	for i,trajectory in enumerate(trajectories):

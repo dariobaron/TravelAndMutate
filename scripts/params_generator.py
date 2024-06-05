@@ -5,7 +5,6 @@ sys.path[0] = os.getcwd()
 import json
 import h5py
 from argparse import ArgumentParser
-from TravelAndMutate.randominterface import NumpyRandomGenerator
 from TravelAndMutate.paramsmanager import Params
 import TravelAndMutate.datamanager as datman
 
@@ -23,8 +22,8 @@ params_dict = {
 	"fitness_beta" : 15,
 	"Ns_setter" : "fromcsv",
 	"Ns_params" : "inputparams/Ns/italy_small.csv",
-	"commuting_setter" : "gravity",
-	"commuting_params" : [1e-3, 0.46, 0.64, 82, "inputparams/distances/italy_small.csv"],
+	"commuting_setter" : "fromcsv",
+	"commuting_params" : "inputparams/c_ij/italy_small.csv",
 	"betas_setter" : "delta",
 	"betas_params" : 0.03,
 	"epsilons_setter" : "delta",
@@ -77,8 +76,7 @@ if not os.path.isdir(outputfolder):
 name = args.name
 filename = outputfolder + name
 
-random_engine = NumpyRandomGenerator(0)
-params = Params(params_dict, random_engine.rng).__dict__
+params = Params(params_dict)
 
 try:
 	datafile = h5py.File(filename+".h5", 'a')
@@ -94,7 +92,7 @@ finally:
 			print(f"WARNING: {filename}.h5 cannot be modified. Consolidate these simulations before creating other parameter sets!")
 		else:
 			group = datafile.create_group(groupname, track_order=True)
-			for key,val in params.items():
+			for key,val in params.getGroupParams().items():
 				group.attrs.create(key, val)
 	else:
 		try:
