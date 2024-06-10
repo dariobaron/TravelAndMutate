@@ -85,7 +85,7 @@ except:
 	datafile = h5py.File(filename+".h5")
 	read_only = True
 finally:
-	groupname = datman.filterGroupmembersWithParams(datafile, params)
+	groupname = datman.filterGroupmembersWithParams(datafile, params.getGroupParams())
 	if groupname is None:
 		groupname = datman.createNewGroupname(datafile)
 		if read_only:
