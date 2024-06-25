@@ -1,7 +1,7 @@
 #ifndef MUTBIND_HPP
 #define MUTBIND_HPP
 
-#include "../../algorithms.hpp"
+#include "../../../mixlightlib/include/algorithms.hpp"
 #include "mutactive.hpp"
 #include "mutpassive.hpp"
 #include "mutdiff.hpp"

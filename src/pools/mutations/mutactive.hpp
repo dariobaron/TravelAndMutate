@@ -7,7 +7,7 @@
 #include "../../host.hpp"
 #include "../../haplotypes.hpp"
 #include "../../randomcore.hpp"
-#include "../../algorithms.hpp"
+#include "../../../mixlightlib/include/algorithms.hpp"
 #include "mutdiff.hpp"
 
 class MutActive{

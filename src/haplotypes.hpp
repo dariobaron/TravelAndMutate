@@ -9,7 +9,7 @@
 #include "types.hpp"
 #include "randomcore.hpp"
 #include "sequence.hpp"
-#include "distributions.hpp"
+#include "../mixlightlib/include/random.hpp"
 
 
 class Haplotypes{
