@@ -83,6 +83,9 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 		print(f"Time elapsed post-processing: {round(postprocesstime, 2)} s")
 		print(f"Time elapsed storing data: {round(storingtime, 2)} s")
 
+	return infections.shape[0]
+
+
 if __name__ == "__main__":
 	parser = ArgumentParser(allow_abbrev=False)
 	parser.add_argument("--dir", type=str, required=True)

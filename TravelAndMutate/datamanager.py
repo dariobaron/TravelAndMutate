@@ -46,7 +46,7 @@ def createReplica(filename, groupname, params_dict, seed, sim_attrs={}, suppress
 		if not suppress_output:
 			print(f"WARNING: overwriting dataset {groupname} with seed {seed}")
 	with h5py.File(outfilename, "w") as datafile:
-		group = datafile.create_group(groupname, track_order=True)
+		group = datafile.create_group(str(groupname), track_order=True)
 		if not suppress_output:
 			print("Writing attributes...", flush=True, end="\r")
 		attributes = group.attrs
@@ -63,7 +63,7 @@ def createReplica(filename, groupname, params_dict, seed, sim_attrs={}, suppress
 def writeGroupInGroup(groupname, group_identifier):
 	with h5py.File(group_identifier["whichfile"], "a") as datafile:
 		group = datafile.require_group(group_identifier["whichgroup"])
-		newgroup = group.create_group(groupname, track_order=True)
+		newgroup = group.create_group(str(groupname), track_order=True)
 		newgroup_identifier = {"whichfile":group_identifier["whichfile"], "whichgroup":newgroup.name}
 	return newgroup_identifier
 
