@@ -61,7 +61,8 @@ if __name__ == "__main__":
 	nsucc = args.nsucc
 	nprocs = args.nprocs
 	if nsucc != -1 and len(seeds) != 1:
-		raise RuntimeError("nsucc cannot concile with the sequence of seeds provided")
+		print("nsucc cannot concile with the sequence of seeds provided")
+		nsucc = -1
 	with mp.Pool(nprocs) as workers:
 		if nsucc == -1:
 			iterable = [(working_dir, filename, group, seed) for group in groups for seed in seeds]
@@ -71,4 +72,4 @@ if __name__ == "__main__":
 			results = workers.imap_unordered(kernelNSucc, iterable)
 		for i in range(len(iterable)):
 			element = next(results, False)
-			print(f"Completed {i*100//len(iterable)}%")
+			print(f"Completed {(i+1)*100//len(iterable)}%", end="\r", flush=True)
