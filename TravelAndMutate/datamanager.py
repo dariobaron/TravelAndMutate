@@ -8,6 +8,14 @@ from tqdm import tqdm
 import glob
 
 
+def getNameSurvivedSims(group, Ninfections):
+	survived = []
+	for name,sim in group.items():
+		if sim["infections"].shape[0] > Ninfections:
+			survived.append(name)
+	return survived
+
+
 def filterGroupmembersWithParams(group, params_dict):
 	names = list(group.keys())
 	for name,member in group.items():
@@ -77,7 +85,23 @@ def collectAttributeFromGroup(key, group, applyfunc=None):
 		length = len(next(iter(attributes.values())))
 	except:
 		length = 1
-	return pd.DataFrame.from_dict(attributes, orient="index", columns=[key]*length)
+	columns = [key] * length
+	df = pd.DataFrame.from_dict(attributes, orient="index", columns=columns)
+	dropped = df.T.drop_duplicates()
+	if dropped.shape[0] == 1:
+		df = dropped.T
+	return df
+
+
+def getHeteroAttributes(group):
+	df = pd.DataFrame.from_dict({name:dict(subgroup.attrs) for name,subgroup in group.items()}, orient="index")
+	heteroattributes = []
+	for attr,values in df.items():
+		uniques = np.unique(np.array(df[attr].tolist()), axis=0).shape[0]
+		if uniques != 1:
+			heteroattributes.append(attr)
+	df = pd.concat([collectAttributeFromGroup(attr, group) for attr in heteroattributes], axis=1)
+	return df
 
 
 def recursivelyCopyAttributes(srcgrp, destgrp):
