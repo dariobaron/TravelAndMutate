@@ -9,5 +9,14 @@ PYBIND11_MODULE(trees, m) {
 		.def("tree", &TreeBalanceProxy::getTree)
 		.def("internals", &TreeBalanceProxy::getInternals)
 		.def("tips", &TreeBalanceProxy::getTips);
+	
+	py::class_<PyTree>(m, "Tree")
+		.def(py::init<const np_array<ParentChild>&>())
+		.def("computeDepths", &PyTree::getDepths)
+		.def("computeProbabilities", &PyTree::getProbabilities)
+		.def("computeB2", &PyTree::getB2)
+		.def("computeB2Norm", &PyTree::getB2Norm)
+		.def("generateYuleEdges", &PyTree::getYuleEdges)
+	;
 
 }

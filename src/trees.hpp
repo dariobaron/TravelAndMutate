@@ -5,6 +5,8 @@
 #include <exception>
 #include "types.hpp"
 #include "individual.hpp"
+#include "../mixlightlib/include/tree.hpp"
+#include "randomcore.hpp"
 
 class TreeBalanceProxy{
 	np_array<unsigned> tree_;
@@ -103,5 +105,29 @@ TreeBalanceProxy treebalanceTree(const Vec<InfectType> & tree){
 	}
 	return treeTB;
 }
+
+
+class PyTree : public Tree{
+public:
+	PyTree(const np_array<ParentChild> & array) : Tree(reinterpret_cast<const Edge*>(array.data()), array.shape(0)) {};
+	static np_array<ParentChild> getYuleEdges(RNGcore * rng, unsigned nL){
+		auto edges = generateYuleEdges(rng->get(), nL);
+		return np_array<ParentChild>(edges.size(), reinterpret_cast<ParentChild*>(edges.data()));
+	};
+	np_array<unsigned> getDepths(){
+		auto depths = computeDepths();
+		return np_array<unsigned>(depths.size(), depths.data(), py::none());
+	};
+	np_array<double> getProbabilities(){
+		auto probs = computeProbabilities();
+		return np_array<double>(probs.size(), probs.data(), py::none());
+	};
+	double getB2(){
+		return computeB2();
+	};
+	double getB2Norm(){
+		return computeB2Norm();
+	};
+};
 
 #endif
