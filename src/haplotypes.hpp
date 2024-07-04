@@ -20,7 +20,7 @@ private:
 	Vec<unsigned> parents_;
 	Vec<double> phi_h_;
 	std::gamma_distribution<> mut_period_;
-	BetaDistribution phi_shifter_;
+	TwoPointDistribution<double> phi_shifter_;
 public:
 	Haplotypes(RNGcore * rng, std::map<std::string,double> properties);
 	double getMutationRate() const;
@@ -46,13 +46,11 @@ Haplotypes::Haplotypes(RNGcore * rng, std::map<std::string,double> properties) :
 	double k = properties["mutation_k"];
 	double theta = 1 / mr_ / k;
 	mut_period_ = std::gamma_distribution<>(k, theta);
-	// beta distribution arbitrarily chosen
-	// parametrized with: mean = alpha / (alpha+beta)
-	double alpha = properties["fitness_alpha"];
-	double beta = properties["fitness_beta"];
-	double scale = properties["fitness_scale"];
-	double x0 = scale * alpha / (alpha + beta) - properties["fitness_mean"];
-	phi_shifter_ = BetaDistribution(alpha, beta, x0, scale);
+	// two-point distribution arbitrarily chosen
+	double p = properties["fitness_p"];
+	double deltaM = properties["fitness_delta-"];
+	double deltaP = properties["fitness_delta+"];
+	phi_shifter_ = TwoPointDistribution<double>(p, deltaM, deltaP);
 }
 
 double Haplotypes::getMutationRate() const{
