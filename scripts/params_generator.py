@@ -95,7 +95,7 @@ finally:
 				group.attrs.create(key, val)
 	else:
 		try:
-			datman.checkAttributes(datafile[groupname], params)
+			datman.checkAttributes(datafile[groupname], params.getGroupParams())
 		except:
 			datafile.close()
 			raise

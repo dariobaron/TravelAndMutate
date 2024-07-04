@@ -8,7 +8,10 @@
 #SBATCH --mem-per-cpu=8G
 #SBATCH --cpus-per-task=1
 
-#SBATCH --job-name=betaMrmeanMrk
-#SBATCH --array=15,16,17,18,19,35,36,37,38,39,55,56,57,58,59,75,76,77,78,79
+#SBATCH --job-name=newfitness
+#SBATCH --array=0-599
 
-apptainer exec /beegfs/labpoletto/sif/python.sif python scripts/run_mutation.py --dir data/ --name betaMrmeanMrk --group $SLURM_ARRAY_TASK_ID --seed 0
+group=$((SLURM_ARRAY_TASK_ID%60))
+seed=$((SLURM_ARRAY_TASK_ID/60))
+
+python scripts/run_mutation.py --dir data/ --name newfitness --group $group --seed $seed
