@@ -14,9 +14,13 @@ PYBIND11_MODULE(trees, m) {
 		.def(py::init<const np_array<ParentChild>&>())
 		.def("computeDepths", &PyTree::getDepths)
 		.def("computeProbabilities", &PyTree::getProbabilities)
+		.def("computeNLeavesSubtree", &PyTree::getNLeavesSubtree)
 		.def("computeB2", &PyTree::getB2)
 		.def("computeB2Norm", &PyTree::getB2Norm)
+		.def("computeCophenetic", &PyTree::getCophenetic)
+		.def("computeCopheneticNorm", &PyTree::getCopheneticNorm)
 		.def("generateYuleEdges", &PyTree::getYuleEdges)
+		.def("getRandomizedEdges", &PyTree::getRandomizedEdges)
 	;
 
 }

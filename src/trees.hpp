@@ -114,6 +114,10 @@ public:
 		auto edges = generateYuleEdges(rng->get(), nL);
 		return np_array<ParentChild>(edges.size(), reinterpret_cast<ParentChild*>(edges.data()));
 	};
+	static np_array<ParentChild> getRandomizedEdges(RNGcore * rng, const PyTree & source){
+		auto edges = randomizeEdges(rng->get(), source);
+		return np_array<ParentChild>(edges.size(), reinterpret_cast<ParentChild*>(edges.data()));
+	};
 	np_array<unsigned> getDepths(){
 		auto depths = computeDepths();
 		return np_array<unsigned>(depths.size(), depths.data(), py::none());
@@ -122,11 +126,21 @@ public:
 		auto probs = computeProbabilities();
 		return np_array<double>(probs.size(), probs.data(), py::none());
 	};
+	np_array<unsigned> getNLeavesSubtree(){
+		auto nL_subtree = computeNLeavesSubtree();
+		return np_array<unsigned>(nL_subtree.size(), nL_subtree.data(), py::none());
+	};
 	double getB2(){
 		return computeB2();
 	};
 	double getB2Norm(){
 		return computeB2Norm();
+	};
+	double getCophenetic(){
+		return computeCophenetic();
+	};
+	double getCopheneticNorm(){
+		return computeCopheneticNorm();
 	};
 };
 
