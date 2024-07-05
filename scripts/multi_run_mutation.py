@@ -63,13 +63,26 @@ if __name__ == "__main__":
 	if nsucc != -1 and len(seeds) != 1:
 		print("nsucc cannot concile with the sequence of seeds provided")
 		nsucc = -1
-	with mp.Pool(nprocs) as workers:
+	if nprocs == 0:
 		if nsucc == -1:
 			iterable = [(working_dir, filename, group, seed) for group in groups for seed in seeds]
-			results = workers.imap_unordered(kernelSeed, iterable)
+			for i,tpl in enumerate(iterable):
+				kernelSeed(tpl)
+				print(f"Completed {(i+1)*100//len(iterable)}%", end="\r", flush=True)
 		else:
 			iterable = [(working_dir, filename, group, seeds[0], nsucc) for group in groups]
-			results = workers.imap_unordered(kernelNSucc, iterable)
-		for i in range(len(iterable)):
-			element = next(results, False)
-			print(f"Completed {(i+1)*100//len(iterable)}%", end="\r", flush=True)
+			for i,tpl in enumerate(iterable):
+				kernelNSucc(tpl)
+				print(f"Completed {(i+1)*100//len(iterable)}%", end="\r", flush=True)
+			
+	else:
+		with mp.Pool(nprocs) as workers:
+			if nsucc == -1:
+				iterable = [(working_dir, filename, group, seed) for group in groups for seed in seeds]
+				results = workers.imap_unordered(kernelSeed, iterable)
+			else:
+				iterable = [(working_dir, filename, group, seeds[0], nsucc) for group in groups]
+				results = workers.imap_unordered(kernelNSucc, iterable)
+			for i in range(len(iterable)):
+				element = next(results, False)
+				print(f"Completed {(i+1)*100//len(iterable)}%", end="\r", flush=True)
