@@ -8,6 +8,12 @@ from tqdm import tqdm
 import glob
 
 
+def checkIsH5Dataset(dataset):
+	if not isinstance(dataset, h5py.Dataset):
+		raise RuntimeError("This is not a dataset")
+	return dataset
+
+
 def getNameSurvivedSims(group, Ninfections):
 	survived = []
 	for name,sim in group.items():
