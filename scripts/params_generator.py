@@ -14,11 +14,6 @@ params_dict = {
 	"dt" : 0.1,
 	"t_max" : 10000,
 	"gamma_trick" : 3,
-	"mutation_rate" : 0.005,
-	"mutation_k" : 10,
-	"fitness_p" : 0.8,
-	"fitness_delta-" : -0.1,
-	"fitness_delta+" : +0.02,
 	"Ns_setter" : "fromcsv",
 	"Ns_params" : "inputparams/Ns/italy_small.csv",
 	"commuting_setter" : "fromcsv",
@@ -30,7 +25,15 @@ params_dict = {
 	"mus_setter" : "delta",
 	"mus_params" : 0.02,
 	"I0_setter" : "onehot",
-	"I0_params" : [27,1]
+	"I0_params" : [27,1],
+	"mutation_rate" : 0.005,
+	"mutation_k" : 10,
+	"fitness_p" : 0.8,
+	"fitness_delta-" : -0.1,
+	"fitness_delta+" : +0.02,
+	"sequencing_prob" : 0.00772,
+	"reporting_prob" : 0.25,
+	"sequencing_delay" : 20
 }
 
 

@@ -13,10 +13,19 @@ void MutDiff::moveFromTo(MutPassive & source, MutActive & target) const{
 
 void MutDiff::moveFromTo(MutActive & source, MutActive & target) const{
 	appendToEraseFromByIndices(target.hosts_[0], source.hosts_.back(), indices_);
+	for (auto it = target.hosts_[0].rbegin(); it != target.hosts_[0].rbegin()+indices_.size(); ++it){
+		if (sequencer_->toBeSequenced()){
+			it->t_sequencing_ = sequencer_->extractSamplingTime();
+		}
+	}
 }
 
 void MutDiff::moveFromTo(MutActive & source, MutPassive & target) const{
 	target.size_ += indices_.size();
+	const auto & healing_hosts = source.hosts_.back();
+	for (auto i : indices_){
+		sequencer_->recordOnHealing(healing_hosts[i]);
+	}
 	eraseWithoutOrder(source.hosts_.back(), indices_);
 }
 
