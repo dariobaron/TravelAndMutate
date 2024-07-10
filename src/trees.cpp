@@ -19,6 +19,7 @@ PYBIND11_MODULE(trees, m) {
 		.def("computeB2Norm", &PyTree::getB2Norm)
 		.def("computeCophenetic", &PyTree::getCophenetic)
 		.def("computeCopheneticNorm", &PyTree::getCopheneticNorm)
+		.def("computeNChildrenPerNode", &PyTree::getNChildren)
 		.def("generateYuleEdges", &PyTree::getYuleEdges)
 		.def("getRandomizedEdges", &PyTree::getRandomizedEdges)
 	;

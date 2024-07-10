@@ -142,6 +142,15 @@ public:
 	double getCopheneticNorm(){
 		return computeCopheneticNorm();
 	};
+	np_array<unsigned> getNChildren() const{
+		auto nchildren = computeNChildrenPerNode();
+		np_array<unsigned> arr(nchildren.size());
+		auto view = arr.mutable_unchecked<1>();
+		for (unsigned i = 0; i < nchildren.size(); ++i){
+			view[i] = nchildren[i];
+		}
+		return arr;
+	}
 };
 
 #endif
