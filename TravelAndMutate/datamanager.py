@@ -13,6 +13,11 @@ def checkIsH5Dataset(dataset):
 		raise RuntimeError("This is not a dataset")
 	return dataset
 
+def checkIsH5Group(group):
+	if not isinstance(group, h5py.Group):
+		raise RuntimeError("This is not a group")
+	return group
+
 
 def filterGroupmembersWithParams(group, params_dict):
 	names = list(group.keys())

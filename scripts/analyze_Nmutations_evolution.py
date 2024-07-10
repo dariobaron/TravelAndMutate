@@ -11,6 +11,7 @@ from tqdm import tqdm
 from TravelAndMutate.datamanager import checkIsH5Dataset, filterGroupmembersWithParams
 from TravelAndMutate.analyzer import writeDataset
 from TravelAndMutate.argumenthelper import splitInput
+from TravelAndMutate.trees import Tree
 
 
 def kernel(tpl):
@@ -28,11 +29,12 @@ def kernel(tpl):
 			run = infile.require_group(groupname+"/"+seedstolook[i])
 			seed = run.attrs["seed"]
 			infections = checkIsH5Dataset(run["infections"]).fields(["t","mut"])[:]
-			fitness = checkIsH5Dataset(run["fitness"])[:]
+			mutationtree = checkIsH5Dataset(run["mutationtree"])[:]
 		infections["t"] = np.round(infections["t"] * dt)
-		fitness = pd.DataFrame.from_records(fitness, index="id")
 		df = pd.DataFrame.from_records(infections, index="mut")
-		df["phi"] = fitness.loc[df.index]
+		tree = Tree(mutationtree[1:])
+		depths = tree.computeDepths()
+		df["Nmutations"] = depths[df.index]
 		df.set_index(np.full(df.shape[0], seed, dtype="u4"), inplace=True)
 		df.index.name = "seed"
 		result.append(df)
@@ -61,10 +63,10 @@ if __name__ == "__main__":
 	if nprocs < 2:
 		for groupname in tqdm(groupnames):
 			_,result = kernel((infilename, groupname))
-			writeDataset(outfilename, groupname, "fitness_evolution", attributes[groupname], result)
+			writeDataset(outfilename, groupname, "Nmutations_evolution", attributes[groupname], result)
 	else:
 		with mp.Pool(nprocs-1) as workers:
 			iterable = [(infilename,groupname) for groupname in groupnames]
 			results = workers.imap_unordered(kernel, iterable)
 			for groupname,result in tqdm(results, total=len(iterable)):
-				writeDataset(outfilename, groupname, "fitness_evolution", attributes[groupname], result)
+				writeDataset(outfilename, groupname, "Nmutations_evolution", attributes[groupname], result)

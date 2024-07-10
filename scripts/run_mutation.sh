@@ -8,10 +8,10 @@
 #SBATCH --mem-per-cpu=2G
 #SBATCH --cpus-per-task=1
 
-#SBATCH --job-name=newfitness
-#SBATCH --array=0-599
+#SBATCH --job-name=fitness
+#SBATCH --array=61-239
 
-group=$((SLURM_ARRAY_TASK_ID%60))
-seed=$((SLURM_ARRAY_TASK_ID/60))
+#group=$((SLURM_ARRAY_TASK_ID%60))
+#seed=$((SLURM_ARRAY_TASK_ID/60))
 
-python scripts/run_mutation.py --dir data/ --name newfitness --group $group --seed $seed
+python scripts/multi_run_mutation.py --dir data/ --name fitness --group $SLURM_ARRAY_TASK_ID --nsucc 5 --nprocs 0

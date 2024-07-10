@@ -11,6 +11,7 @@ from tqdm import tqdm
 from TravelAndMutate.datamanager import checkIsH5Dataset, filterGroupmembersWithParams
 from TravelAndMutate.analyzer import writeDataset
 from TravelAndMutate.argumenthelper import splitInput
+from TravelAndMutate.trees import Tree
 
 
 def kernel(tpl):
@@ -22,22 +23,32 @@ def kernel(tpl):
 		seedstolook = filterGroupmembersWithParams(group, {"survived":True})
 	if seedstolook is None:
 		return groupname,None
-	result = []
+	result = {}
 	for i in range(len(seedstolook)):
 		with h5py.File(infilename) as infile:
 			run = infile.require_group(groupname+"/"+seedstolook[i])
 			seed = run.attrs["seed"]
 			infections = checkIsH5Dataset(run["infections"]).fields(["t","mut"])[:]
-			fitness = checkIsH5Dataset(run["fitness"])[:]
-		infections["t"] = np.round(infections["t"] * dt)
-		fitness = pd.DataFrame.from_records(fitness, index="id")
-		df = pd.DataFrame.from_records(infections, index="mut")
-		df["phi"] = fitness.loc[df.index]
-		df.set_index(np.full(df.shape[0], seed, dtype="u4"), inplace=True)
-		df.index.name = "seed"
-		result.append(df)
-	result = pd.concat(result).to_records()
-	return groupname,result	
+			mutationtree = checkIsH5Dataset(run["mutationtree"])[:]
+		metrics = {}
+		infectious_haplo = pd.DataFrame.from_records(infections).groupby("mut").count()
+		metrics["InfByHaplos_max"] = (infectious_haplo.max() / infectious_haplo.sum())["t"]
+		metrics["InfByHaplos_mean"] = (infectious_haplo.mean() / infectious_haplo.sum())["t"]
+		tree = Tree(mutationtree[1:])
+		depths = tree.computeDepths()
+		metrics["TreeDepth_max"] = depths.max()
+		metrics["TreeDepth_mean"] = depths.mean()
+		children = tree.computeNChildrenPerNode()
+		metrics["nChildren_max"] = children.max() / children.sum()
+		metrics["nChildren_mean"] = children.mean() / children.sum()
+		metrics["B2"] = tree.computeB2()
+		metrics["B2Norm"] = tree.computeB2Norm()
+		#metrics["Cophenetic"] = tree.computeCophenetic()
+		#metrics["CopheneticNorm"] = tree.computeCopheneticNorm()
+		result[seed] = metrics
+	result = pd.DataFrame.from_dict(result, orient="index")
+	result.index.name = "seed"
+	return groupname, result.to_records()
 
 
 if __name__ == "__main__":
@@ -61,10 +72,10 @@ if __name__ == "__main__":
 	if nprocs < 2:
 		for groupname in tqdm(groupnames):
 			_,result = kernel((infilename, groupname))
-			writeDataset(outfilename, groupname, "fitness_evolution", attributes[groupname], result)
+			writeDataset(outfilename, groupname, "single_quantities", attributes[groupname], result)
 	else:
 		with mp.Pool(nprocs-1) as workers:
 			iterable = [(infilename,groupname) for groupname in groupnames]
 			results = workers.imap_unordered(kernel, iterable)
 			for groupname,result in tqdm(results, total=len(iterable)):
-				writeDataset(outfilename, groupname, "fitness_evolution", attributes[groupname], result)
+				writeDataset(outfilename, groupname, "single_quantities", attributes[groupname], result)
