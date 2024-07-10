@@ -120,15 +120,15 @@ public:
 	};
 	np_array<unsigned> getDepths(){
 		auto depths = computeDepths();
-		return np_array<unsigned>(depths.size(), depths.data(), py::none());
+		return np_array<unsigned>(depths.size(), depths.data());
 	};
 	np_array<double> getProbabilities(){
 		auto probs = computeProbabilities();
-		return np_array<double>(probs.size(), probs.data(), py::none());
+		return np_array<double>(probs.size(), probs.data());
 	};
 	np_array<unsigned> getNLeavesSubtree(){
 		auto nL_subtree = computeNLeavesSubtree();
-		return np_array<unsigned>(nL_subtree.size(), nL_subtree.data(), py::none());
+		return np_array<unsigned>(nL_subtree.size(), nL_subtree.data());
 	};
 	double getB2(){
 		return computeB2();
@@ -144,12 +144,7 @@ public:
 	};
 	np_array<unsigned> getNChildren() const{
 		auto nchildren = computeNChildrenPerNode();
-		np_array<unsigned> arr(nchildren.size());
-		auto view = arr.mutable_unchecked<1>();
-		for (unsigned i = 0; i < nchildren.size(); ++i){
-			view[i] = nchildren[i];
-		}
-		return arr;
+		return np_array<unsigned>(nchildren.size(), nchildren.data());
 	}
 };
 
