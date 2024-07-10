@@ -6,6 +6,7 @@
 #include "../../types.hpp"
 #include "../../host.hpp"
 #include "../../haplotypes.hpp"
+#include "../../sequencer.hpp"
 #include "../../randomcore.hpp"
 #include "../../../mixlightlib/include/algorithms.hpp"
 #include "mutdiff.hpp"
@@ -13,6 +14,7 @@
 class MutActive{
 private:
 	Haplotypes * haplos_;
+	Sequencer * sequencer_;
 	const PatchID patch_id_;
 	const double rate_;
 	Vec<Vec<Host>> hosts_;
@@ -20,6 +22,7 @@ public:
 	friend class MutDiff;
 	MutActive(PatchID patch_id, unsigned gamma_trick, double rate);
 	void setHaplotypes(Haplotypes * seqdealer);
+	void setSequencer(Sequencer * sequencer);
 	unsigned size() const;
 	double getPhi() const;
 	Vec<Vec<Host>>& getHosts();
@@ -27,12 +30,17 @@ public:
 	MutDiff getNewErased(RNGcore * rng) const;
 	MutDiff sampleInfectors(RNGcore * rng, unsigned n) const;
 	void updateHaplotypes(Time t);
+	void sampleSequences();
 };
 
-MutActive::MutActive(PatchID patch_id, unsigned gamma_trick, double rate) : patch_id_(patch_id), rate_(rate), hosts_(gamma_trick) {}
+MutActive::MutActive(PatchID patch_id, unsigned gamma_trick, double rate) : sequencer_(nullptr), patch_id_(patch_id), rate_(rate), hosts_(gamma_trick) {}
 
 void MutActive::setHaplotypes(Haplotypes * seqdealer){
 	haplos_ = seqdealer;
+}
+
+void MutActive::setSequencer(Sequencer * sequencer){
+	sequencer_ = sequencer;
 }
 
 unsigned MutActive::size() const{
@@ -113,6 +121,14 @@ void MutActive::updateHaplotypes(Time t){
 				unsigned newmut = haplos_->newMutation(infectious.evolved_mut_);
 				infectious.evolveMutation(t, newmut, tnext);
 			}
+		}
+	}
+}
+
+void MutActive::sampleSequences(){
+	for (const auto & hosts : hosts_){
+		for (const auto & host : hosts){
+			sequencer_->record(host);
 		}
 	}
 }

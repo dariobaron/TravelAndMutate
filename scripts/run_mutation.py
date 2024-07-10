@@ -12,6 +12,7 @@ from TravelAndMutate.paramsmanager import Params
 from TravelAndMutate.randominterface import NumpyRandomGenerator
 from TravelAndMutate.haplotypes import Haplotypes
 from TravelAndMutate.recorder import RecorderMutations as Recorder
+from TravelAndMutate.sequencer import Sequencer
 from TravelAndMutate.system import SystemMutations as System
 import TravelAndMutate.datamanager as datman
 
@@ -41,9 +42,12 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	}
 	dealer = Haplotypes(random_engine.cpprng, haploproperties)
 
+	sequencer = Sequencer(random_engine.cpprng, params["sequencing_prob"]*params["reporting_prob"], params["sequencing_delay"])
+
 	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False), params["gamma_trick"])
 	system.setRecorder(recorder)
 	system.setHaplotypes(dealer)
+	system.setSequencer(sequencer)
 	system.seedEpidemic()
 	system.setVerbosity(not suppress_output)
 
@@ -59,6 +63,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 #	unique_haplos.sort()
 #	sequences = dealer.read(unique_haplos)
 	fitness = dealer.getAllPhi()
+	sampled = sequencer.getSampledIDs()
 	sim_attrs = {
 		"seed" : seed,
 		"exec_time" : simulationtime,
@@ -76,6 +81,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	datman.writeDatasetInGroup("mutationtree", haplotree, group_identifier, suppress_output)
 #	datman.writeDatasetInGroup("sequences", sequences, group_identifier, suppress_output)
 	datman.writeDatasetInGroup("fitness", fitness, group_identifier, suppress_output)
+	datman.writeDatasetInGroup("sequenceIDs", sampled, group_identifier, suppress_output)
 	storingtime = time.time() - starttime
 
 	if not suppress_output:

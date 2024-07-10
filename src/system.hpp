@@ -8,6 +8,7 @@
 #include "types.hpp"
 #include "randomcore.hpp"
 #include "haplotypes.hpp"
+#include "sequencer.hpp"
 #include "patch.hpp"
 #include "trees.hpp"
 
@@ -15,6 +16,7 @@ template<Pool PoolType>
 class System{
 	RNGcore * rng_;
 	Haplotypes * haplos_;
+	Sequencer * sequencer_;
 	Vec<Patch<PoolType>> patches_;
 	Vec<Vec<double>> c_ij_;
 	Time t_;
@@ -24,12 +26,14 @@ public:
 	System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties, unsigned gamma_trick);
 	void setRecorder(Recorder<PoolType> * recorder);
 	void setHaplotypes(Haplotypes * seqdealer);
+	void setSequencer(Sequencer * sequencer);
 	void setVerbosity(bool verbose);
 	void seedEpidemic();
 	void spreadForTime(Time tmax);
 private:
 	bool isEpidemicAlive() const;
 	void checkHaploDealer() const;
+	void checkSequencer() const;
 	void checkSeeded() const;
 	void updatePatches();
 };
@@ -37,7 +41,7 @@ private:
 
 template<Pool PoolType>
 System<PoolType>::System(RNGcore * rng, const np_array<double> & commuting_matrix, const np_array<PatchProperties> & properties, unsigned gamma_trick) :
-				rng_(rng), haplos_(nullptr), t_(0), seeded_(false), verbose_(false) {
+				rng_(rng), haplos_(nullptr), sequencer_(nullptr), t_(0), seeded_(false), verbose_(false) {
 	if (commuting_matrix.ndim() != 2){
 		throw std::runtime_error("Commuting matrix must have 2 dimensions");
 	}
@@ -74,6 +78,15 @@ void System<PoolType>::setHaplotypes(Haplotypes * haplos){
 
 
 template<Pool PoolType>
+void System<PoolType>::setSequencer(Sequencer * sequencer){
+	sequencer_ = sequencer;
+	for (auto & p : patches_){
+		p.setSequencer(sequencer_);
+	}
+}
+
+
+template<Pool PoolType>
 void System<PoolType>::setVerbosity(bool verbose){
 	verbose_ = verbose;
 }
@@ -82,6 +95,7 @@ void System<PoolType>::setVerbosity(bool verbose){
 template<Pool PoolType>
 void System<PoolType>::seedEpidemic(){
 	checkHaploDealer();
+	checkSequencer();
 	seeded_ = true;
 	for (auto & p : patches_){
 		p.seedEpidemic();
@@ -93,6 +107,7 @@ template<Pool PoolType>
 void System<PoolType>::spreadForTime(Time tmax){
 	checkSeeded();
 	checkHaploDealer();
+	checkSequencer();
 	updatePatches();
 	Vec<double> rhos(patches_.size());
 	while (t_ < tmax && isEpidemicAlive()){
@@ -110,7 +125,13 @@ void System<PoolType>::spreadForTime(Time tmax){
 			p.setNewRecoveries();
 			p.setNewOnsets();
 		}
+		if constexpr (std::is_same<PoolType,Mutations>::value){
+			for (auto & p : patches_){
+				p.sampleSequences();
+			}
+		}
 		++t_;
+		sequencer_->update(t_);
 		updatePatches();
 		if (verbose_){
 			py::print("Simulation at step", t_, py::arg("end")="\r", py::arg("flush")=true);
@@ -137,6 +158,16 @@ void System<PoolType>::checkHaploDealer() const{
 	if constexpr (std::is_same<PoolType,Mutations>::value){
 		if (!static_cast<bool>(haplos_)){
 			throw std::runtime_error("Spreading required before setting Haplotypes");
+		}
+	}
+}
+
+
+template<Pool PoolType>
+void System<PoolType>::checkSequencer() const{
+	if constexpr (std::is_same<PoolType,Mutations>::value){
+		if (!static_cast<bool>(sequencer_)){
+			throw std::runtime_error("Spreading required before setting Sequencer");
 		}
 	}
 }

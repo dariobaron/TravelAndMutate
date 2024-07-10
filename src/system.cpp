@@ -32,6 +32,7 @@ PYBIND11_MODULE(system, m) {
 				py::arg("rng_ptr"), py::arg("commuting_matrix"), py::arg("patch_properties"), py::arg("gamma_trick"))
 		.def("setRecorder", &System<Mutations>::setRecorder)
 		.def("setHaplotypes", &System<Mutations>::setHaplotypes)
+		.def("setSequencer", &System<Mutations>::setSequencer)
 		.def("setVerbosity", &System<Mutations>::setVerbosity)
 		.def("seedEpidemic", &System<Mutations>::seedEpidemic)
 		.def("spreadForTime", &System<Mutations>::spreadForTime)

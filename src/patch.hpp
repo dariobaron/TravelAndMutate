@@ -5,12 +5,14 @@
 #include "types.hpp"
 #include "randomcore.hpp"
 #include "haplotypes.hpp"
+#include "sequencer.hpp"
 #include "recorder.hpp"
 #include "pools.hpp"
 
 template<Pool PoolType>
 class Patch{
 	RNGcore * rng_;
+	Sequencer * sequencer_;
 	Recorder<PoolType> * rec_;
 	unsigned N_;
 	double beta_;
@@ -26,12 +28,14 @@ public:
 	double getRho() const;
 	void setRecorder(Recorder<PoolType> * recorder);
 	void setHaplotypes(Haplotypes * seqdealer);
+	void setSequencer(Sequencer * sequencer);
 	void seedEpidemic();
 	Vec<unsigned> computeInfections(const Vec<double> & rhos, const Vec<double> & c_ij) const;
 	auto sampleInfectors(unsigned Enew) const;
 	void addNewInfections(Time t, const PoolType::Diff & Enew);
 	void setNewRecoveries();
 	void setNewOnsets();
+	void sampleSequences();
 	void update(Time t);
 	bool isEpidemicAlive() const;
 };
@@ -62,6 +66,15 @@ void Patch<PoolType>::setHaplotypes(Haplotypes * haplos){
 	S_.setHaplotypes(haplos);
 	E_.setHaplotypes(haplos);
 	I_.setHaplotypes(haplos);
+}
+
+
+template<Pool PoolType>
+void Patch<PoolType>::setSequencer(Sequencer * sequencer){
+	sequencer_ = sequencer;
+	I_.setSequencer(sequencer);
+	Inew_.setSequencer(sequencer);
+	Rnew_.setSequencer(sequencer);
 }
 
 
@@ -114,12 +127,24 @@ void Patch<PoolType>::addNewInfections(Time t, const PoolType::Diff & Enew){
 template<Pool PoolType>
 void Patch<PoolType>::setNewRecoveries(){
 	Rnew_ = I_.getNewErased(rng_);
+	if constexpr (std::is_same<PoolType,Mutations>::value){
+		Rnew_.setSequencer(sequencer_);
+	}
 }
 
 
 template<Pool PoolType>
 void Patch<PoolType>::setNewOnsets(){
 	Inew_ = E_.getNewErased(rng_);
+	if constexpr (std::is_same<PoolType,Mutations>::value){
+		Inew_.setSequencer(sequencer_);
+	}
+}
+
+
+template<Pool PoolType>
+void Patch<PoolType>::sampleSequences(){
+	I_.sampleSequences();
 }
 
 
