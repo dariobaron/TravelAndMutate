@@ -14,14 +14,6 @@ def checkIsH5Dataset(dataset):
 	return dataset
 
 
-def getNameSurvivedSims(group, Ninfections):
-	survived = []
-	for name,sim in group.items():
-		if sim["infections"].shape[0] > Ninfections:
-			survived.append(name)
-	return survived
-
-
 def filterGroupmembersWithParams(group, params_dict):
 	names = list(group.keys())
 	for name,member in group.items():
