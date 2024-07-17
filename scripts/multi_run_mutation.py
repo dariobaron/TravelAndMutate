@@ -29,18 +29,19 @@ def kernelNSucc(tpl):
 	groupname = tpl[2]
 	seed = tpl[3]
 	stilltorun = tpl[4]
+	suppress_output = tpl[5]
 	while stilltorun > 0:
-		ninfections = runner(working_dir, filename, groupname, seed, True)
+		ninfections = runner(working_dir, filename, groupname, seed, suppress_output)
 		if ninfections > 100:
 			stilltorun = stilltorun - 1
 		seed = seed + 1
-		if seed >= 1000:
+		if seed >= 10000:
 			break
 	return True
 
 
 def kernelSeed(tpl):
-	runner(tpl[0], tpl[1], tpl[2], tpl[3], True)
+	runner(tpl[0], tpl[1], tpl[2], tpl[3], tpl[4])
 	return True
 
 
@@ -50,7 +51,7 @@ if __name__ == "__main__":
 	parser.add_argument("--name", type=str, required=True)
 	parser.add_argument("--group", type=str, required=True)
 	parser.add_argument("--seed", type=str, default="0")
-	parser.add_argument("--nsucc", type=int, default=10)
+	parser.add_argument("--nsucc", type=int, default=5)
 	parser.add_argument("--nprocs", type=int, required=True)
 	args = parser.parse_args()
 	working_dir = args.dir
@@ -64,12 +65,12 @@ if __name__ == "__main__":
 		nsucc = -1
 	if nprocs == 0:
 		if nsucc == -1:
-			iterable = [(working_dir, filename, group, seed) for group in groups for seed in seeds]
+			iterable = [(working_dir, filename, group, seed, False) for group in groups for seed in seeds]
 			for i,tpl in enumerate(iterable):
 				kernelSeed(tpl)
 				print(f"Completed {(i+1)*100//len(iterable)}%", end="\r", flush=True)
 		else:
-			iterable = [(working_dir, filename, group, seeds[0], nsucc) for group in groups]
+			iterable = [(working_dir, filename, group, seeds[0], nsucc, False) for group in groups]
 			for i,tpl in enumerate(iterable):
 				kernelNSucc(tpl)
 				print(f"Completed {(i+1)*100//len(iterable)}%", end="\r", flush=True)
@@ -77,10 +78,10 @@ if __name__ == "__main__":
 	else:
 		with mp.Pool(nprocs) as workers:
 			if nsucc == -1:
-				iterable = [(working_dir, filename, group, seed) for group in groups for seed in seeds]
+				iterable = [(working_dir, filename, group, seed, True) for group in groups for seed in seeds]
 				results = workers.imap_unordered(kernelSeed, iterable)
 			else:
-				iterable = [(working_dir, filename, group, seeds[0], nsucc) for group in groups]
+				iterable = [(working_dir, filename, group, seeds[0], nsucc, True) for group in groups]
 				results = workers.imap_unordered(kernelNSucc, iterable)
 			for i in range(len(iterable)):
 				element = next(results, False)
