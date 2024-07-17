@@ -69,4 +69,11 @@ struct IdPhi{
 	double phi;
 };
 
+struct SequencingRecord{
+	Time t;
+	PatchID loc;
+	unsigned id;
+	SequencingRecord(Time t, PatchID loc, unsigned id) : t(t), loc(loc), id(id) {};
+};
+
 #endif

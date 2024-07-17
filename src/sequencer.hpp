@@ -12,7 +12,7 @@ class Sequencer{
 	std::bernoulli_distribution distr_;
 	Time t_;
 	Time delay_;
-	Vec<unsigned> sampled_;
+	Vec<SequencingRecord> sampled_;
 public:
 	Sequencer(RNGcore * rng, double p, Time delay);
 	void update(Time t);
@@ -20,7 +20,7 @@ public:
 	Time extractSamplingTime();
 	void record(const Host & host);
 	void recordOnHealing(const Host & host);
-	np_array<unsigned> getSampledIDs() const;
+	np_array<SequencingRecord> getSampledIDs() const;
 };
 
 
@@ -44,21 +44,21 @@ Time Sequencer::extractSamplingTime(){
 
 void Sequencer::record(const Host & host){
 	if (host.t_sequencing_ == t_){
-		sampled_.push_back(host.evolved_mut_);
+		sampled_.emplace_back(t_, host.patch_, host.evolved_mut_);
 	}
 }
 
 
 void Sequencer::recordOnHealing(const Host & host){
 	if ((host.t_sequencing_ != -1) && (host.t_sequencing_ > t_)){
-		sampled_.push_back(host.evolved_mut_);
+		sampled_.emplace_back(t_, host.patch_, host.evolved_mut_);
 	}
 }
 
 
 
-np_array<unsigned> Sequencer::getSampledIDs() const{
-	return np_array<unsigned>(sampled_.size(), sampled_.data(), py::none());
+np_array<SequencingRecord> Sequencer::getSampledIDs() const{
+	return np_array<SequencingRecord>(sampled_.size(), sampled_.data());
 }
 
 
