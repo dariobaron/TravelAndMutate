@@ -29,20 +29,20 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	params = Params(params_dict, random_engine.rng)
 	patch_params = pd.DataFrame()
 	patch_params["N"] = params["Ns"].astype("u4")
-	patch_params["beta"] = params["betas"]
-	patch_params["epsilon"] = params["epsilons"]
-	patch_params["mu"] = params["mus"]
+	patch_params["beta"] = params["betas"] * params["dt"]
+	patch_params["epsilon"] = params["epsilons"] * params["dt"]
+	patch_params["mu"] = params["mus"] * params["dt"]
 	patch_params["I0"] = params["I0"].astype("u4")
 
 	recorder = Recorder(params["N_patches"])
 
 	haploproperties = {
-		"mutation_rate":params["mutation_rate"], "mutation_k":params["mutation_k"],
+		"mutation_rate":params["mutation_rate"]*params["dt"], "mutation_k":params["mutation_k"],
 		"fitness_p":params["fitness_p"], "fitness_delta-":params["fitness_delta-"], "fitness_delta+":params["fitness_delta+"]
 	}
 	dealer = Haplotypes(random_engine.cpprng, haploproperties)
 
-	sequencer = Sequencer(random_engine.cpprng, params["sequencing_prob"]*params["reporting_prob"], params["sequencing_delay"])
+	sequencer = Sequencer(random_engine.cpprng, params["sequencing_prob"]*params["reporting_prob"], params["sequencing_delay"]/params["dt"])
 
 	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False), params["gamma_trick"])
 	system.setRecorder(recorder)
@@ -57,13 +57,14 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 
 	starttime = time.time()
 	infections = recorder.getInfectionTree()
+	infections["t"] = np.round(infections["t"]*params["dt"])
 	trajectories = [recorder.getFullTrajectory(p) for p in range(params["N_patches"])]
+	for trajectory in trajectories:
+		trajectory["t"] = np.round(trajectory["t"]*params["dt"])
 	haplotree = dealer.getMutationTree()
-#	unique_haplos = np.unique(infections["mut"])
-#	unique_haplos.sort()
-#	sequences = dealer.read(unique_haplos)
 	fitness = dealer.getAllPhi()
 	sampled = sequencer.getSampledIDs()
+	sampled["t"] = np.round(sampled["t"]*params["dt"])
 	sim_attrs = {
 		"seed" : seed,
 		"exec_time" : simulationtime,
@@ -79,9 +80,8 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	for i,trajectory in enumerate(trajectories):
 		datman.writeDatasetInGroup(str(i), trajectory, traj_identifier, suppress_output)
 	datman.writeDatasetInGroup("mutationtree", haplotree, group_identifier, suppress_output)
-#	datman.writeDatasetInGroup("sequences", sequences, group_identifier, suppress_output)
 	datman.writeDatasetInGroup("fitness", fitness, group_identifier, suppress_output)
-	datman.writeDatasetInGroup("sequenceIDs", sampled, group_identifier, suppress_output)
+	datman.writeDatasetInGroup("sequencings", sampled, group_identifier, suppress_output)
 	storingtime = time.time() - starttime
 
 	if not suppress_output:
