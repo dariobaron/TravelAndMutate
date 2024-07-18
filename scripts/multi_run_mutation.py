@@ -35,7 +35,7 @@ def kernelNSucc(tpl):
 		if ninfections > 100:
 			stilltorun = stilltorun - 1
 		seed = seed + 1
-		if seed >= 10000:
+		if seed >= 1000:
 			break
 	return True
 

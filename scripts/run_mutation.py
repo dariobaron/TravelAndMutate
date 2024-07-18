@@ -42,7 +42,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	}
 	dealer = Haplotypes(random_engine.cpprng, haploproperties)
 
-	sequencer = Sequencer(random_engine.cpprng, params["sequencing_prob"]*params["reporting_prob"], params["sequencing_delay"]/params["dt"])
+	sequencer = Sequencer(random_engine.cpprng, params["sequencing_prob"]*params["reporting_prob"], round(params["sequencing_delay"]/params["dt"]))
 
 	system = System(random_engine.cpprng, params["commuting"], patch_params.to_records(index=False), params["gamma_trick"])
 	system.setRecorder(recorder)
