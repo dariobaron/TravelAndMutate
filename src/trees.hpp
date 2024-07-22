@@ -148,32 +148,27 @@ public:
 		return np_array<unsigned>(nchildren.size(), nchildren.data());
 	}
 	PyTree subset(const np_array<Node::ID> & nodes_to_take){
-		auto view = nodes_to_take.unchecked<1>();
 		std::set<Node::ID> nodesubset({0});
 		nodesubset.insert(nodes_to_take.data(), nodes_to_take.data()+nodes_to_take.shape(0));
 		const auto & nodes = getNodes();
 		std::vector<Edge> edges;
-		for (unsigned i = 0; i < nodes_to_take.shape(0); ++i){
-			if (view[i] != 0){
-				const Node & node = nodes[view[i]];
-				const Node * parent_ptr = node.parent();
-				auto iter = nodesubset.find(parent_ptr->id());
-				while (iter == nodesubset.end()){
-					parent_ptr = parent_ptr->parent();
-					iter = nodesubset.find(parent_ptr->id());
-				}
-				edges.emplace_back(*iter, node.id());
+		for (Node::ID id : nodesubset){
+			if (id == 0)	{	continue;	}
+			const Node & node = nodes[id];
+			const Node * parent_ptr = node.parent();
+			auto iter = nodesubset.find(parent_ptr->id());
+			while (iter == nodesubset.end()){
+				parent_ptr = parent_ptr->parent();
+				iter = nodesubset.find(parent_ptr->id());
 			}
+			edges.emplace_back(*iter, node.id());
 		}
-		assert(edges.size()+1 == nodesubset.size());
 		std::sort(edges.begin(), edges.end());
 		std::map<Node::ID,Node::ID> newnames({{0,0}});
 		for (auto & edge : edges){
-			assert(newnames.contains(edge.parent));
 			edge.parent = newnames[edge.parent];
-			assert(!newnames.contains(edge.child));
-			edge.child = newnames.size();
-			newnames.insert({edge.child, newnames.size()});
+			const auto [it, success] = newnames.insert({edge.child, newnames.size()});
+			edge.child = it->second;
 		}
 		return PyTree(Tree(edges));
 	}
