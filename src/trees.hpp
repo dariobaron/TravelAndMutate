@@ -110,6 +110,7 @@ TreeBalanceProxy treebalanceTree(const Vec<InfectType> & tree){
 class PyTree : public Tree{
 public:
 	PyTree(const np_array<ParentChild> & array) : Tree(reinterpret_cast<const Edge*>(array.data()), array.shape(0)) {};
+	PyTree(Tree && tree) : Tree(tree) {};
 	static np_array<ParentChild> getYuleEdges(RNGcore * rng, unsigned nL){
 		auto edges = generateYuleEdges(rng->get(), nL);
 		return np_array<ParentChild>(edges.size(), reinterpret_cast<ParentChild*>(edges.data()));
@@ -145,6 +146,36 @@ public:
 	np_array<unsigned> getNChildren() const{
 		auto nchildren = computeNChildrenPerNode();
 		return np_array<unsigned>(nchildren.size(), nchildren.data());
+	}
+	PyTree subset(const np_array<Node::ID> & nodes_to_take){
+		auto view = nodes_to_take.unchecked<1>();
+		std::set<Node::ID> nodesubset({0});
+		nodesubset.insert(nodes_to_take.data(), nodes_to_take.data()+nodes_to_take.shape(0));
+		const auto & nodes = getNodes();
+		std::vector<Edge> edges;
+		for (unsigned i = 0; i < nodes_to_take.shape(0); ++i){
+			if (view[i] != 0){
+				const Node & node = nodes[view[i]];
+				const Node * parent_ptr = node.parent();
+				auto iter = nodesubset.find(parent_ptr->id());
+				while (iter == nodesubset.end()){
+					parent_ptr = parent_ptr->parent();
+					iter = nodesubset.find(parent_ptr->id());
+				}
+				edges.emplace_back(*iter, node.id());
+			}
+		}
+		assert(edges.size()+1 == nodesubset.size());
+		std::sort(edges.begin(), edges.end());
+		std::map<Node::ID,Node::ID> newnames({{0,0}});
+		for (auto & edge : edges){
+			assert(newnames.contains(edge.parent));
+			edge.parent = newnames[edge.parent];
+			assert(!newnames.contains(edge.child));
+			edge.child = newnames.size();
+			newnames.insert({edge.child, newnames.size()});
+		}
+		return PyTree(Tree(edges));
 	}
 };
 
