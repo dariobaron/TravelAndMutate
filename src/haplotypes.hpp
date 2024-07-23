@@ -37,10 +37,10 @@ public:
 	Vec<unsigned> getParents() const {return parents_;};
 private:
 	void computeIthSequence(unsigned i);
-	void checkSequence(unsigned i);
 };
 
-Haplotypes::Haplotypes(RNGcore * rng, std::map<std::string,double> properties) : rng_(rng), mr_(properties["mutation_rate"]) {
+Haplotypes::Haplotypes(RNGcore * rng, std::map<std::string,double> properties) :
+			rng_(rng), mr_(properties["mutation_rate"]), seqs_(1), parents_(1,-1), phi_h_(1,1) {
 	// gamma distribution arbitrarily chosen
 	// parametrized with: mean = k * theta, and: variance = k * theta^2
 	double k = properties["mutation_k"];
@@ -66,17 +66,16 @@ unsigned Haplotypes::getTotal() const{
 }
 
 std::string Haplotypes::getSequence(unsigned i){
-	checkSequence(i);
 	computeIthSequence(i);
 	return static_cast<std::string>(seqs_[i]);
 }
 
 np_array<ParentChild> Haplotypes::getMutationTree() const{
-	np_array<ParentChild> tree(parents_.size());
+	np_array<ParentChild> tree(parents_.size()-1);
 	auto view = tree.mutable_unchecked<1>();
-	for (unsigned i = 0; i < parents_.size(); ++i){
-		view[i].parent = parents_[i];
-		view[i].child = i;
+	for (unsigned i = 1; i < parents_.size(); ++i){
+		view[i-1].parent = parents_[i];
+		view[i-1].child = i;
 	}
 	return tree;
 }
@@ -106,7 +105,6 @@ np_array<IdSequence> Haplotypes::read(const np_array<unsigned> & ids){
 	auto view_seqs = sequences.mutable_unchecked<1>();
 	auto view_ids = ids.unchecked<1>();
 	for (unsigned i = 0; i < ids.shape(0); ++i){
-		checkSequence(view_ids[i]);
 		computeIthSequence(view_ids[i]);
 		view_seqs[i].id = view_ids[i];
 		seqs_[view_ids[i]].writeSequenceInto(view_seqs[i].sequence);
@@ -118,7 +116,6 @@ np_array<IdSequence> Haplotypes::readAll(){
 	np_array<IdSequence> sequences(seqs_.size());
 	auto view_seqs = sequences.mutable_unchecked<1>();
 	for (unsigned i = 0; i < seqs_.size(); ++i){
-		checkSequence(i);
 		computeIthSequence(i);
 		view_seqs[i].id = i;
 		seqs_[i].writeSequenceInto(view_seqs[i].sequence);
@@ -129,14 +126,10 @@ np_array<IdSequence> Haplotypes::readAll(){
 unsigned Haplotypes::newMutation(unsigned i){
 	seqs_.emplace_back();
 	parents_.emplace_back(i);
-	if (i == -1){
-		phi_h_.emplace_back(1);
-	}
-	else{
-		double newphi = phi_h_.at(i) + phi_shifter_(*rng_);
-		phi_h_.emplace_back(newphi);
-	}
-	return seqs_.size()-1;
+	double newphi = phi_h_.at(i);
+	if (i)	{	newphi += phi_shifter_(*rng_);	}
+	phi_h_.emplace_back(newphi);
+	return seqs_.size() - 1;
 }
 
 Time Haplotypes::nextMutation(){
@@ -144,7 +137,7 @@ Time Haplotypes::nextMutation(){
 }
 
 void Haplotypes::computeIthSequence(unsigned i){
-	if (!seqs_[i].isValid()){
+	if (!seqs_.at(i).isValid()){
 		unsigned parent = parents_[i];
 		if (parent == -1){
 			seqs_[i] = Sequence<seq_len>(rng_);
@@ -153,13 +146,6 @@ void Haplotypes::computeIthSequence(unsigned i){
 			computeIthSequence(parent);
 			seqs_[i] = seqs_[parent].generateMutation(rng_);
 		}
-	}
-}
-
-
-void Haplotypes::checkSequence(unsigned i){
-	if (i >= seqs_.size()){
-		throw std::out_of_range("There are not enough sequences (which are "+std::to_string(seqs_.size())+")");
 	}
 }
 
