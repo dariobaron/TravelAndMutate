@@ -104,10 +104,28 @@ np_array<IdSequence> Haplotypes::read(const np_array<unsigned> & ids){
 	np_array<IdSequence> sequences(ids.shape(0));
 	auto view_seqs = sequences.mutable_unchecked<1>();
 	auto view_ids = ids.unchecked<1>();
+	computeIthSequence(0);
 	for (unsigned i = 0; i < ids.shape(0); ++i){
-		computeIthSequence(view_ids[i]);
-		view_seqs[i].id = view_ids[i];
-		seqs_[view_ids[i]].writeSequenceInto(view_seqs[i].sequence);
+		unsigned current_id = view_ids[i];
+		if (current_id == 0)	{	continue;	}
+		if (i > 0){
+			if (current_id <= view_ids[i-1]){
+				throw std::runtime_error("Array of IDs to read must be sorted and without duplicates");
+			}
+		}
+		unsigned jumps = 0;
+		unsigned parent_id = parents_[current_id];
+		while (!seqs_[parent_id].isValid()){
+			++jumps;
+			parent_id = parents_[parent_id];
+		}
+		Sequence<seq_len> newsequence = seqs_[parent_id].generateMutation(rng_);
+		for (unsigned j = 0; j < jumps; ++j){
+			newsequence = newsequence.generateMutation(rng_);
+		}
+		seqs_[current_id] = newsequence;
+		view_seqs[i].id = current_id;
+		newsequence.writeSequenceInto(view_seqs[i].sequence);
 	}
 	return sequences;
 }
@@ -138,11 +156,11 @@ Time Haplotypes::nextMutation(){
 
 void Haplotypes::computeIthSequence(unsigned i){
 	if (!seqs_.at(i).isValid()){
-		unsigned parent = parents_[i];
-		if (parent == -1){
+		if (i == 0){
 			seqs_[i] = Sequence<seq_len>(rng_);
 		}
 		else{
+			unsigned parent = parents_[i];
 			computeIthSequence(parent);
 			seqs_[i] = seqs_[parent].generateMutation(rng_);
 		}
