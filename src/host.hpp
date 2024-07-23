@@ -10,8 +10,8 @@ struct Host{
 	unsigned mut_, infector_mut_, evolved_mut_;
 	PatchID patch_, infector_patch_;
 	
-	Host() : Host(-1, -1, -1, -1, -1, -1, -1, -1) {};
-	Host(Time t, Time tnext, PatchID patch, unsigned id, unsigned mut) : Host(t, tnext, patch, id, mut, -1, -1, -1) {};
+	Host() : Host(-1, -1, -1, -1, -1, -1, -1, 0) {};
+	Host(Time t, Time tnext, PatchID patch, unsigned id, unsigned mut) : Host(t, tnext, patch, id, mut, -1, -1, 0) {};
 	Host(Time t, Time tnext, PatchID patch, unsigned id, unsigned mut, PatchID inf_patch, unsigned inf_id, unsigned inf_mut) :
 		t_last_mut_(t), t_next_mut_(tnext), t_sequencing_(-1), id_(id), infector_id_(inf_id), mut_(mut), infector_mut_(inf_mut), evolved_mut_(mut), patch_(patch), infector_patch_(inf_patch) {};
 

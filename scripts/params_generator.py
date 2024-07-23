@@ -26,7 +26,7 @@ params_dict = {
 	"mus_params" : 0.2, # [1/d]
 	"I0_setter" : "onehot",
 	"I0_params" : [27,5],
-	"mutation_rate" : 0.08, # [1/d]
+	"mutation_rate" : 0.06, # [1/d]
 	"mutation_k" : 10,
 	"fitness_p" : 0.8,
 	"fitness_delta-" : -0.1,
