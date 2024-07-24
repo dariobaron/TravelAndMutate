@@ -20,7 +20,7 @@ private:
 	Vec<unsigned> parents_;
 	Vec<double> phi_h_;
 	std::gamma_distribution<> mut_period_;
-	TwoPointDistribution<double> phi_shifter_;
+	DiscreteDistribution<double> phi_shifter_;
 public:
 	Haplotypes(RNGcore * rng, std::map<std::string,double> properties);
 	double getMutationRate() const;
@@ -50,7 +50,7 @@ Haplotypes::Haplotypes(RNGcore * rng, std::map<std::string,double> properties) :
 	double p = properties["fitness_p"];
 	double deltaM = properties["fitness_delta-"];
 	double deltaP = properties["fitness_delta+"];
-	phi_shifter_ = TwoPointDistribution<double>(p, deltaM, deltaP);
+	phi_shifter_ = DiscreteDistribution<double>({p,p,1-2*p}, {deltaM,0,deltaP});
 }
 
 double Haplotypes::getMutationRate() const{
