@@ -19,7 +19,7 @@ def kernel(tpl):
 		infilename = tpl[0]
 		groupname = tpl[1]
 		with h5py.File(infilename) as infile:
-			group = checkIsH5Group(groupname)
+			group = checkIsH5Group(infile[groupname])
 			dt = group.attrs["dt"]
 			seedstolook = filterGroupmembersWithParams(group, {"survived":True})
 		if seedstolook is None:
@@ -29,7 +29,7 @@ def kernel(tpl):
 		result = []
 		for i in range(len(seedstolook)):
 			with h5py.File(infilename) as infile:
-				run = checkIsH5Group(groupname+"/"+seedstolook[i])
+				run = checkIsH5Group(infile[groupname+"/"+seedstolook[i]])
 				seed = run.attrs["seed"]
 				infections = checkIsH5Dataset(run["infections"]).fields(["t","mut"])[:]
 				mutationtree = checkIsH5Dataset(run["mutationtree"])[:]
