@@ -34,6 +34,7 @@ def kernel(tpl):
 				seed = run.attrs["seed"]
 				infections = checkIsH5Dataset(run["infections"]).fields(["t","mut"])[:]
 				mutationtree = checkIsH5Dataset(run["mutationtree"])[:]
+				sequencings = checkIsH5Dataset(run["sequencings"])[:]
 			metrics = {}
 			survival_rate = len(seedstolook) / nruns_attempted
 			metrics["survivalrate"] = survival_rate
@@ -51,6 +52,16 @@ def kernel(tpl):
 			metrics["B2Norm"] = tree.computeB2Norm()
 			metrics["Cophenetic"] = tree.computeCophenetic()
 			metrics["CopheneticNorm"] = tree.computeCopheneticNorm()
+			sequenced_ids,counts = np.unique(sequencings["id"], return_counts=True)
+			metrics["SequencingsByHaplos_max"] = (counts.max() / counts.sum())
+			metrics["SequencingsByHaplos_2ndmax"] = (counts.max() / np.sort(counts)[-2])
+			subtree = tree.subset(sequencings["id"])
+			subdepths = subtree.computeDepths()
+			metrics["SubTreeDepth_max"] = subdepths.max()
+			metrics["SubTreeDepth_mean"] = subdepths.mean()
+			subchildren = subtree.computeNChildrenPerNode()
+			metrics["SubNChildren_max"] = subchildren.max() / subchildren.sum()
+			metrics["SubNChildren_mean"] = subchildren.mean() / subchildren.sum()
 			result[seed] = metrics
 		result = pd.DataFrame.from_dict(result, orient="index")
 		result.index.name = "seed"
