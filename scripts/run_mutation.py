@@ -58,6 +58,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	starttime = time.time()
 	infections = recorder.getInfectionTree()
 	infections["t"] = np.round(infections["t"]*params["dt"])
+	infections = recfunctions.drop_fields(infections, ["ID","inf_ID","inf_mut"])
 	trajectories = [recorder.getFullTrajectory(p) for p in range(params["N_patches"])]
 	for trajectory in trajectories:
 		trajectory["t"] = np.round(trajectory["t"]*params["dt"])
@@ -68,7 +69,10 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	sim_attrs = {
 		"seed" : seed,
 		"exec_time" : simulationtime,
-		"survived" : infections.shape[0]>100
+		"survived" : np.mean(
+						[trajectory["R"][-1] > I0
+						for trajectory,I0 in zip(trajectories,patch_params["I0"])]
+					) >= 0.2
 	}
 	sim_attrs.update(params.getSimParams())
 	postprocesstime = time.time() - starttime
