@@ -34,7 +34,7 @@ def kernel(tpl):
 				sequencings = checkIsH5Dataset(run["sequencings"]).fields(["t","id"])[:]
 				mutationtree = checkIsH5Dataset(run["mutationtree"])[:]
 			df = pd.DataFrame.from_records(sequencings, index="id")
-			tree = Tree(mutationtree[1:])
+			tree = Tree(mutationtree)
 			depths = tree.computeDepths()
 			df["Nmutations"] = depths[df.index]
 			df.set_index(np.full(df.shape[0], seed, dtype="u4"), inplace=True)

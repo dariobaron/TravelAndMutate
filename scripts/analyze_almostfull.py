@@ -41,7 +41,7 @@ def kernel(tpl):
 			infectious_haplo = pd.DataFrame.from_records(infections).groupby("mut").count()
 			metrics["InfByHaplos_max"] = (infectious_haplo.max() / infectious_haplo.sum())["t"]
 			metrics["InfByHaplos_mean"] = (infectious_haplo.mean() / infectious_haplo.sum())["t"]
-			tree = Tree(mutationtree[1:])
+			tree = Tree(mutationtree)
 			depths = tree.computeDepths()
 			metrics["TreeDepth_max"] = depths.max()
 			metrics["TreeDepth_mean"] = depths.mean()
