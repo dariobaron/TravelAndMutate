@@ -69,10 +69,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	sim_attrs = {
 		"seed" : seed,
 		"exec_time" : simulationtime,
-		"survived" : np.mean(
-						[trajectory["R"][-1] > I0
-						for trajectory,I0 in zip(trajectories,patch_params["I0"])]
-					) >= 0.2
+		"survived" : sampled.shape[0] > 0
 	}
 	sim_attrs.update(params.getSimParams())
 	postprocesstime = time.time() - starttime

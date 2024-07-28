@@ -54,7 +54,11 @@ def kernel(tpl):
 			metrics["CopheneticNorm"] = tree.computeCopheneticNorm()
 			sequenced_ids,counts = np.unique(sequencings["id"], return_counts=True)
 			metrics["SequencingsByHaplos_max"] = (counts.max() / counts.sum())
-			metrics["SequencingsByHaplos_2ndmax"] = (counts.max() / np.sort(counts)[-2])
+			if counts.shape[0] > 1:
+				sorted_counts = np.sort(counts)[::-1]
+				metrics["SequencingsByHaplos_2ndmax"] = (counts[0] / counts[1])
+			else:
+				metrics["SequencingsByHaplos_2ndmax"] = 1
 			subtree = tree.subset(sequencings["id"])
 			subdepths = subtree.computeDepths()
 			metrics["SubTreeDepth_max"] = subdepths.max()
