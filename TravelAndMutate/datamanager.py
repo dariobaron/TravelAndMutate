@@ -116,8 +116,6 @@ def recursivelyCopyAttributes(srcgrp, destgrp):
 
 
 def checkAttributes(group, params_dict):
-	if len(params_dict) != len(group.attrs):
-		raise RuntimeError(f"Wrong attributes match: {group.name} does not have {len(params_dict)} attributes")
 	for key,val in params_dict.items():
 		if np.any(val != group.attrs[key]):
 			raise RuntimeError(f"Attribute value of {key} in {group.name} mismatch the required value {val}")

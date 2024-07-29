@@ -10,7 +10,7 @@ import h5py
 import pandas as pd
 from tqdm import tqdm
 from TravelAndMutate.datamanager import checkIsH5Dataset, checkIsH5Group, filterGroupmembersWithParams, collectAttributeFromGroup
-from TravelAndMutate.analyzer import writeDataset
+from TravelAndMutate.analyzer import writeDataset, writeEmpty
 from TravelAndMutate.argumenthelper import splitInput
 from TravelAndMutate.trees import Tree
 
@@ -58,7 +58,7 @@ def kernel(tpl):
 				sorted_counts = np.sort(counts)[::-1]
 				metrics["SequencingsByHaplos_2ndmax"] = (counts[0] / counts[1])
 			else:
-				metrics["SequencingsByHaplos_2ndmax"] = 1
+				metrics["SequencingsByHaplos_2ndmax"] = np.nan
 			subtree = tree.subset(sequencings["id"])
 			subdepths = subtree.computeDepths()
 			metrics["SubTreeDepth_max"] = subdepths.max()
@@ -73,7 +73,7 @@ def kernel(tpl):
 	except Exception as exception:
 		print(f"Occurred for group {groupname}", end="\t:\t")
 		print(repr(exception))
-		return groupname, None
+		return groupname, repr(exception)
 
 
 if __name__ == "__main__":
@@ -107,12 +107,16 @@ if __name__ == "__main__":
 	if nprocs < 2:
 		for groupname in tqdm(groupnames, miniters=1, mininterval=1, dynamic_ncols=True):
 			_,result = kernel((infilename, groupname))
-			if result is not None:
+			if isinstance(result, str):
+				writeEmpty(outfilename, groupname, attributes[groupname], result)
+			else:
 				writeDataset(outfilename, groupname, "single_quantities", attributes[groupname], result)
 	else:
 		with mp.Pool(nprocs-1) as workers:
 			iterable = [(infilename,groupname) for groupname in groupnames]
 			results = workers.imap_unordered(kernel, iterable)
 			for groupname,result in tqdm(results, total=len(iterable), miniters=1, mininterval=1, dynamic_ncols=True):
-				if result is not None:
+				if isinstance(result, str):
+					writeEmpty(outfilename, groupname, attributes[groupname], result)
+				else:
 					writeDataset(outfilename, groupname, "single_quantities", attributes[groupname], result)
