@@ -1,5 +1,4 @@
 import h5py
-import time
 from TravelAndMutate.datamanager import checkAttributes, checkIsH5Group
 
 
@@ -20,7 +19,7 @@ def writeDataset(outfilename, groupname, datasetname, attributes, data):
 		if datasetname in group:
 			del group[datasetname]
 		dataset = group.create_dataset(datasetname, data=data, compression="gzip", compression_opts=9)
-	time.sleep(0.1)
+		outfile.close()
 	return
 
 
@@ -38,5 +37,5 @@ def writeEmpty(outfilename, groupname, attributes, error):
 			for key,val in attributes.items():
 				group.attrs[key] = val
 		group.attrs["status"] = error
-	time.sleep(0.1)
+		outfile.close()
 	return

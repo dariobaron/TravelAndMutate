@@ -110,7 +110,6 @@ TreeBalanceProxy treebalanceTree(const Vec<InfectType> & tree){
 class PyTree : public Tree{
 public:
 	PyTree(const np_array<ParentChild> & array) : Tree(reinterpret_cast<const Edge*>(array.data()), array.shape(0)) {};
-	PyTree(Tree && tree) : Tree(tree) {};
 	static np_array<ParentChild> getYuleEdges(RNGcore * rng, unsigned nL){
 		auto edges = generateYuleEdges(rng->get(), nL);
 		return np_array<ParentChild>(edges.size(), reinterpret_cast<ParentChild*>(edges.data()));
@@ -147,9 +146,12 @@ public:
 		auto nchildren = computeNChildrenPerNode();
 		return np_array<unsigned>(nchildren.size(), nchildren.data());
 	}
-	PyTree subset(const np_array<Node::ID> & nodes_to_take){
+	np_array<ParentChild> subset(const np_array<Node::ID> & nodes_to_take){
+		auto view = nodes_to_take.unchecked<1>();
 		std::set<Node::ID> nodesubset({0});
-		nodesubset.insert(nodes_to_take.data(), nodes_to_take.data()+nodes_to_take.shape(0));
+		for (unsigned i = 0; i < nodes_to_take.shape(0); ++i){
+			nodesubset.insert(view[i]);
+		}
 		const auto & nodes = getNodes();
 		std::vector<Edge> edges;
 		for (Node::ID id : nodesubset){
@@ -170,7 +172,7 @@ public:
 			const auto [it, success] = newnames.insert({edge.child, newnames.size()});
 			edge.child = it->second;
 		}
-		return PyTree(Tree(edges));
+		return np_array<ParentChild>(edges.size(), reinterpret_cast<ParentChild*>(edges.data()));
 	}
 };
 
