@@ -9,7 +9,7 @@ import h5py
 import pandas as pd
 from tqdm import tqdm
 from TravelAndMutate.datamanager import checkIsH5Dataset, checkIsH5Group, filterGroupmembersWithParams
-from TravelAndMutate.analyzer import writeDataset
+from TravelAndMutate.analyzer import writeDataset, writeEmpty
 from TravelAndMutate.argumenthelper import splitInput
 from TravelAndMutate.trees import Tree
 
@@ -45,7 +45,7 @@ def kernel(tpl):
 	except Exception as exception:
 		print(repr(exception))
 		print(f"Occurred for group {groupname}")
-		return groupname, None
+		return groupname, repr(exception)
 
 
 if __name__ == "__main__":
@@ -53,7 +53,9 @@ if __name__ == "__main__":
 	parser.add_argument("--file", type=str, required=True)
 	parser.add_argument("--group", type=str, default="")
 	parser.add_argument("--nprocs", type=int, default=0)
+	parser.add_argument("--overwrite", type=bool, default=False)
 	args = parser.parse_args()
+	overwrite = args.overwrite
 	infilename = args.file
 	if not os.path.isfile(infilename):
 		raise RuntimeError(f"{infilename} is not a file")
@@ -65,16 +67,28 @@ if __name__ == "__main__":
 		else:
 			groupnames = splitInput(groupnames)
 		attributes = {groupname : dict(infile[groupname].attrs) for groupname in groupnames}
+	if os.path.isfile(outfilename) and not overwrite:
+		to_remove = []
+		with h5py.File(outfilename) as outfile:
+			for groupname in groupnames:
+				if groupname in outfile:
+					if "Nmutations_evolution" in checkIsH5Group(outfile[groupname]):
+						to_remove.append(groupname)
+		groupnames = [groupname for groupname in groupnames if groupname not in to_remove]
 	nprocs = args.nprocs
 	if nprocs < 2:
 		for groupname in tqdm(groupnames, miniters=1, mininterval=1, dynamic_ncols=True):
 			_,result = kernel((infilename, groupname))
-			if result is not None:
+			if isinstance(result, str):
+				writeEmpty(outfilename, groupname, attributes[groupname], "Nmutations_evolution", result)
+			else:
 				writeDataset(outfilename, groupname, "Nmutations_evolution", attributes[groupname], result)
 	else:
 		with mp.Pool(nprocs-1) as workers:
 			iterable = [(infilename,groupname) for groupname in groupnames]
 			results = workers.imap_unordered(kernel, iterable)
 			for groupname,result in tqdm(results, total=len(iterable), miniters=1, mininterval=1, dynamic_ncols=True):
-				if result is not None:
+				if isinstance(result, str):
+					writeEmpty(outfilename, groupname, attributes[groupname], "Nmutations_evolution", result)
+				else:
 					writeDataset(outfilename, groupname, "Nmutations_evolution", attributes[groupname], result)

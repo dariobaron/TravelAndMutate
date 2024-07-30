@@ -88,6 +88,8 @@ def collectAttributeFromGroup(key, group, applyfunc=None):
 		length = len(next(iter(attributes.values())))
 	except:
 		length = 1
+	if isinstance(next(iter(attributes.values())), str):
+		length = 1
 	columns = [key] * length
 	df = pd.DataFrame.from_dict(attributes, orient="index", columns=columns)
 	dropped = df.T.drop_duplicates()

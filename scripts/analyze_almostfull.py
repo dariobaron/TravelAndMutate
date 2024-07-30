@@ -53,6 +53,7 @@ def kernel(tpl):
 			metrics["Cophenetic"] = tree.computeCophenetic()
 			metrics["CopheneticNorm"] = tree.computeCopheneticNorm()
 			sequenced_ids,counts = np.unique(sequencings["id"], return_counts=True)
+			metrics["nHaplosSequenced"] = sequenced_ids.shape[0]
 			metrics["SequencingsByHaplos_max"] = (counts.max() / counts.sum())
 			if counts.shape[0] > 1:
 				sorted_counts = np.sort(counts)[::-1]
@@ -109,7 +110,7 @@ if __name__ == "__main__":
 		for groupname in tqdm(groupnames, miniters=1, mininterval=1, dynamic_ncols=True):
 			_,result = kernel((infilename, groupname))
 			if isinstance(result, str):
-				writeEmpty(outfilename, groupname, attributes[groupname], result)
+				writeEmpty(outfilename, groupname, attributes[groupname], "single_quantities", result)
 			else:
 				writeDataset(outfilename, groupname, "single_quantities", attributes[groupname], result)
 	else:
@@ -118,6 +119,6 @@ if __name__ == "__main__":
 			results = workers.imap_unordered(kernel, iterable)
 			for groupname,result in tqdm(results, total=len(iterable), miniters=1, mininterval=1, dynamic_ncols=True):
 				if isinstance(result, str):
-					writeEmpty(outfilename, groupname, attributes[groupname], result)
+					writeEmpty(outfilename, groupname, attributes[groupname], "single_quantities", result)
 				else:
 					writeDataset(outfilename, groupname, "single_quantities", attributes[groupname], result)
