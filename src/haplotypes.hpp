@@ -48,9 +48,10 @@ Haplotypes::Haplotypes(RNGcore * rng, std::map<std::string,double> properties) :
 	mut_period_ = std::gamma_distribution<>(k, theta);
 	// two-point distribution arbitrarily chosen
 	double p = properties["fitness_p"];
+	double q = 0.5 * (1 - p);
 	double deltaM = properties["fitness_delta-"];
 	double deltaP = properties["fitness_delta+"];
-	phi_shifter_ = DiscreteDistribution<double>({p,p,1-2*p}, {deltaM,0,deltaP});
+	phi_shifter_ = DiscreteDistribution<double>({q,q,p}, {deltaM,0,deltaP});
 }
 
 double Haplotypes::getMutationRate() const{
