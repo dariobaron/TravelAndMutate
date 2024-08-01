@@ -58,16 +58,20 @@ def kernel(tpl):
 			if counts.shape[0] > 1:
 				sorted_counts = np.sort(counts)[::-1]
 				metrics["SequencingsByHaplos_2ndmax"] = (counts[0] / counts[1])
+				subedges = tree.subset(sequencings["id"])
+				subtree = Tree(subedges)
+				subdepths = subtree.computeDepths()
+				metrics["SubTreeDepth_max"] = subdepths.max()
+				metrics["SubTreeDepth_mean"] = subdepths.mean()
+				subchildren = subtree.computeNChildrenPerNode()
+				metrics["SubNChildren_max"] = subchildren.max() / subchildren.sum()
+				metrics["SubNChildren_mean"] = subchildren.mean() / subchildren.sum()
 			else:
 				metrics["SequencingsByHaplos_2ndmax"] = np.nan
-			subedges = tree.subset(sequencings["id"])
-			subtree = Tree(subedges)
-			subdepths = subtree.computeDepths()
-			metrics["SubTreeDepth_max"] = subdepths.max()
-			metrics["SubTreeDepth_mean"] = subdepths.mean()
-			subchildren = subtree.computeNChildrenPerNode()
-			metrics["SubNChildren_max"] = subchildren.max() / subchildren.sum()
-			metrics["SubNChildren_mean"] = subchildren.mean() / subchildren.sum()
+				metrics["SubTreeDepth_max"] = 0
+				metrics["SubTreeDepth_mean"] = 0
+				metrics["SubNChildren_max"] = 0
+				metrics["SubNChildren_mean"] = 0
 			result[seed] = metrics
 		result = pd.DataFrame.from_dict(result, orient="index")
 		result.index.name = "seed"
@@ -110,7 +114,7 @@ if __name__ == "__main__":
 		for groupname in tqdm(groupnames, miniters=1, mininterval=1, dynamic_ncols=True):
 			_,result = kernel((infilename, groupname))
 			if isinstance(result, str):
-				writeEmpty(outfilename, groupname, attributes[groupname], "single_quantities", result)
+				writeEmpty(outfilename, groupname, "single_quantities", attributes[groupname], result)
 			else:
 				writeDataset(outfilename, groupname, "single_quantities", attributes[groupname], result)
 	else:
@@ -119,6 +123,6 @@ if __name__ == "__main__":
 			results = workers.imap_unordered(kernel, iterable)
 			for groupname,result in tqdm(results, total=len(iterable), miniters=1, mininterval=1, dynamic_ncols=True):
 				if isinstance(result, str):
-					writeEmpty(outfilename, groupname, attributes[groupname], "single_quantities", result)
+					writeEmpty(outfilename, groupname, "single_quantities", attributes[groupname], result)
 				else:
 					writeDataset(outfilename, groupname, "single_quantities", attributes[groupname], result)

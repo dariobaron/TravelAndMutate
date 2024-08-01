@@ -70,7 +70,7 @@ if __name__ == "__main__":
 		with h5py.File(outfilename) as outfile:
 			for groupname in groupnames:
 				if groupname in outfile:
-					if "Nmutations_sequenced_evolution" in checkIsH5Group(outfile[groupname]):
+					if "fitness_evolution" in checkIsH5Group(outfile[groupname]):
 						to_remove.append(groupname)
 		groupnames = [groupname for groupname in groupnames if groupname not in to_remove]
 	nprocs = args.nprocs
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 		for groupname in tqdm(groupnames, miniters=1, mininterval=1, dynamic_ncols=True):
 			_,result = kernel((infilename, groupname))
 			if isinstance(result, str):
-				writeEmpty(outfilename, groupname, attributes[groupname], "fitness_evolution", result)
+				writeEmpty(outfilename, groupname, "fitness_evolution", attributes[groupname], result)
 			else:
 				writeDataset(outfilename, groupname, "fitness_evolution", attributes[groupname], result)
 	else:
@@ -87,6 +87,6 @@ if __name__ == "__main__":
 			results = workers.imap_unordered(kernel, iterable)
 			for groupname,result in tqdm(results, total=len(iterable), miniters=1, mininterval=1, dynamic_ncols=True):
 				if isinstance(result, str):
-					writeEmpty(outfilename, groupname, attributes[groupname], "fitness_evolution", result)
+					writeEmpty(outfilename, groupname, "fitness_evolution", attributes[groupname], result)
 				else:
 					writeDataset(outfilename, groupname, "fitness_evolution", attributes[groupname], result)

@@ -15,7 +15,7 @@ def writeDataset(outfilename, groupname, datasetname, attributes, data):
 			group = outfile.create_group(groupname, track_order=True)
 			for key,val in attributes.items():
 				group.attrs[key] = val
-		group.attrs["status"] = "ok"
+		group.attrs[f"status_{datasetname}"] = "ok"
 		if datasetname in group:
 			del group[datasetname]
 		dataset = group.create_dataset(datasetname, data=data, compression="gzip", compression_opts=9)
@@ -23,7 +23,7 @@ def writeDataset(outfilename, groupname, datasetname, attributes, data):
 	return
 
 
-def writeEmpty(outfilename, groupname, attributes, which, error):
+def writeEmpty(outfilename, groupname, datasetname, attributes, error):
 	with h5py.File(outfilename, 'a') as outfile:
 		if groupname in outfile:
 			group = checkIsH5Group(outfile[groupname])
@@ -36,6 +36,6 @@ def writeEmpty(outfilename, groupname, attributes, which, error):
 			group = outfile.create_group(groupname, track_order=True)
 			for key,val in attributes.items():
 				group.attrs[key] = val
-		group.attrs[f"status_{which}"] = error
+		group.attrs[f"status_{datasetname}"] = error
 		outfile.close()
 	return

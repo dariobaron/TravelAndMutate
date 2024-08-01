@@ -80,7 +80,7 @@ if __name__ == "__main__":
 		for groupname in tqdm(groupnames, miniters=1, mininterval=1, dynamic_ncols=True):
 			_,result = kernel((infilename, groupname))
 			if isinstance(result, str):
-				writeEmpty(outfilename, groupname, attributes[groupname], "Nmutations_sequenced_evolution", result)
+				writeEmpty(outfilename, groupname, "Nmutations_sequenced_evolution", attributes[groupname], result)
 			else:
 				writeDataset(outfilename, groupname, "Nmutations_sequenced_evolution", attributes[groupname], result)
 	else:
@@ -89,6 +89,6 @@ if __name__ == "__main__":
 			results = workers.imap_unordered(kernel, iterable)
 			for groupname,result in tqdm(results, total=len(iterable), miniters=1, mininterval=1, dynamic_ncols=True):
 				if isinstance(result, str):
-					writeEmpty(outfilename, groupname, attributes[groupname], "Nmutations_sequenced_evolution", result)
+					writeEmpty(outfilename, groupname, "Nmutations_sequenced_evolution", attributes[groupname], result)
 				else:
 					writeDataset(outfilename, groupname, "Nmutations_sequenced_evolution", attributes[groupname], result)
