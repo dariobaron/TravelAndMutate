@@ -62,6 +62,12 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	trajectories = [recorder.getFullTrajectory(p) for p in range(params["N_patches"])]
 	for trajectory in trajectories:
 		trajectory["t"] = np.round(trajectory["t"]*params["dt"])
+	trajectories = [
+		pd.DataFrame.from_records(trajectory).groupby("t").agg(
+			{"S":"last","E":"last","I":"last","R":"last","Enew":"sum","Inew":"sum"}
+		).to_records()
+		for trajectory in trajectories
+	]
 	haplotree = dealer.getMutationTree()
 	fitness = dealer.getAllPhi()
 	sampled = sequencer.getSampledIDs()
