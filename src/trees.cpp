@@ -13,6 +13,7 @@ PYBIND11_MODULE(trees, m) {
 	py::class_<PyTree>(m, "Tree")
 		.def(py::init<const np_array<ParentChild>&>())
 		.def("computeDepths", &PyTree::getDepths)
+		.def("computeWidths", &PyTree::getWidths)
 		.def("computeProbabilities", &PyTree::getProbabilities)
 		.def("computeNLeavesSubtree", &PyTree::getNLeavesSubtree)
 		.def("computeB2", &PyTree::getB2)

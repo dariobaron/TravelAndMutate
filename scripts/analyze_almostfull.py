@@ -63,6 +63,10 @@ def kernel(tpl):
 				subdepths = subtree.computeDepths()
 				metrics["SubTreeDepth_max"] = subdepths.max()
 				metrics["SubTreeDepth_mean"] = subdepths.mean()
+				subwidths = subtree.computeWidths()
+				metrics["SubTreeMaxWidth"] = subwidths.max()
+				metrics["SubTreeDepthAtMaxWidth"] = np.argmax(subwidths)
+				metrics["SubTreeMaxWidthOverMaxDepth"] = subwidths.max() / subdepths.max()
 				subchildren = subtree.computeNChildrenPerNode()
 				metrics["SubNChildren_max"] = subchildren.max() / subchildren.sum()
 				metrics["SubNChildren_mean"] = subchildren.mean() / subchildren.sum()
@@ -70,6 +74,9 @@ def kernel(tpl):
 				metrics["SequencingsByHaplos_2ndmax"] = np.nan
 				metrics["SubTreeDepth_max"] = 0
 				metrics["SubTreeDepth_mean"] = 0
+				metrics["SubTreeMaxWidth"] = 1
+				metrics["SubTreeDepthAtMaxWidth"] = 0
+				metrics["SubTreeMaxWidthOverMaxDepth"] = np.nan
 				metrics["SubNChildren_max"] = 0
 				metrics["SubNChildren_mean"] = 0
 			result[seed] = metrics

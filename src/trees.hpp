@@ -122,6 +122,10 @@ public:
 		auto depths = computeDepths();
 		return np_array<unsigned>(depths.size(), depths.data());
 	};
+	np_array<unsigned> getWidths(){
+		auto widths = computeWidths();
+		return np_array<unsigned>(widths.size(), widths.data());
+	};
 	np_array<double> getProbabilities(){
 		auto probs = computeProbabilities();
 		return np_array<double>(probs.size(), probs.data());
