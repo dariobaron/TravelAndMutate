@@ -32,7 +32,7 @@ def kernel(tpl):
 				run = checkIsH5Group(infile[groupname+"/"+seedstolook[i]])
 				seed = run.attrs["seed"]
 				infections = checkIsH5Dataset(run["infections"]).fields(["t","mut"])[:]
-				mutationtree = checkIsH5Dataset(run["mutationtree"])[:]
+				mutationtree = checkIsH5Dataset(run["mutationtree"]).fields(["parent","child"])[:]
 			df = pd.DataFrame.from_records(infections, index="mut")
 			tree = Tree(mutationtree)
 			depths = tree.computeDepths()
