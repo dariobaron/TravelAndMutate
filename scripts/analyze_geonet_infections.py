@@ -36,23 +36,12 @@ def kernel(tpl):
 			with h5py.File(infilename) as infile:
 				run = checkIsH5Group(infile[groupname+"/"+seedstolook[i]])
 				seed = run.attrs["seed"]
-				trajectories = {int(loc_id) : trajectory.fields(["t","I"])[:] for loc_id,trajectory in checkIsH5Group(run["trajectories"]).items()}
-			for loc_id,trajectory in trajectories.items():
-				if np.sum(trajectory["I"]>0) != 0:
-					t_invasion = trajectory["t"][trajectory["I"]>0][0]
-					t_extinction = trajectory["t"][trajectory["I"]>0][-1]
-				else:
-					t_invasion = -1
-					t_extinction = -1
-				result.append([seed, loc_id, 0, t_invasion])
-				result.append([seed, loc_id, -1, t_extinction])
-				peaks = find_peaks(trajectory["I"], width=30, distance=60, prominence=10)[0]
-				for j,peak_idx in enumerate(peaks):
-					t_peak = trajectory["t"][peak_idx]
-					result.append([seed, loc_id, j+1, t_peak])
-		result = pd.DataFrame(result, columns=["seed","loc_id","event","t"], dtype="i4")
-		result["t"] = result["t"].astype("f4").replace(-1, np.nan)
-		return groupname, result.to_records(index=False)
+				infections = checkIsH5Dataset(run["infections"]).fields(["loc","inf_loc","t"])[:]
+			infections = pd.DataFrame.from_records(infections[infections["inf_loc"] != 2**32-1])
+			result.append(infections.groupby(["loc","inf_loc"]).count())
+		result = pd.concat(result).groupby(["loc","inf_loc"]).mean()
+		result.rename(columns={"t":"n_infections"}, inplace=True)
+		return groupname, result.to_records()
 	except Exception as exception:
 		print(f"Occurred for group {groupname}", end="\t:\t")
 		print(repr(exception))
@@ -85,7 +74,7 @@ if __name__ == "__main__":
 		with h5py.File(outfilename) as outfile:
 			for groupname in groupnames:
 				if groupname in outfile:
-					if "timings" in checkIsH5Group(outfile[groupname]):
+					if "geonet_infections" in checkIsH5Group(outfile[groupname]):
 						to_remove.append(groupname)
 		groupnames = [groupname for groupname in groupnames if groupname not in to_remove]
 	nprocs = args.nprocs
@@ -93,15 +82,15 @@ if __name__ == "__main__":
 		for groupname in tqdm(groupnames, miniters=1, mininterval=1, dynamic_ncols=True):
 			_,result = kernel((infilename, groupname,only_survived))
 			if isinstance(result, str):
-				writeEmpty(outfilename, groupname, "timings", attributes[groupname], result)
+				writeEmpty(outfilename, groupname, "geonet_infections", attributes[groupname], result)
 			else:
-				writeDataset(outfilename, groupname, "timings", attributes[groupname], result)
+				writeDataset(outfilename, groupname, "geonet_infections", attributes[groupname], result)
 	else:
 		with mp.Pool(nprocs-1) as workers:
 			iterable = [(infilename,groupname,only_survived) for groupname in groupnames]
 			results = workers.imap_unordered(kernel, iterable)
 			for groupname,result in tqdm(results, total=len(iterable), miniters=1, mininterval=1, dynamic_ncols=True):
 				if isinstance(result, str):
-					writeEmpty(outfilename, groupname, "timings", attributes[groupname], result)
+					writeEmpty(outfilename, groupname, "geonet_infections", attributes[groupname], result)
 				else:
-					writeDataset(outfilename, groupname, "timings", attributes[groupname], result)
+					writeDataset(outfilename, groupname, "geonet_infections", attributes[groupname], result)
