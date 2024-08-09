@@ -18,6 +18,8 @@ private:
 	double mr_;
 	Vec<Sequence<seq_len>> seqs_;
 	Vec<unsigned> parents_;
+	Vec<Time> birth_ts_;
+	Vec<PatchID> birth_locs_;
 	Vec<double> phi_h_;
 	std::gamma_distribution<> mut_period_;
 	DiscreteDistribution<double> phi_shifter_;
@@ -27,12 +29,12 @@ public:
 	double getPhiH(unsigned i) const;
 	unsigned getTotal() const;
 	std::string getSequence(unsigned i);
-	np_array<ParentChild> getMutationTree() const;
+	np_array<MutationTree> getMutationTree() const;
 	np_array<IdPhi> getAllPhi() const;
 	np_array<double> getPhiOf(const np_array<unsigned> & ids);
 	np_array<IdSequence> read(const np_array<unsigned> & ids);
 	np_array<IdSequence> readAll();
-	unsigned newMutation(unsigned i);
+	unsigned newMutation(Time t, PatchID loc, unsigned i);
 	Time nextMutation();
 	Vec<unsigned> getParents() const {return parents_;};
 private:
@@ -40,7 +42,7 @@ private:
 };
 
 Haplotypes::Haplotypes(RNGcore * rng, std::map<std::string,double> properties) :
-			rng_(rng), mr_(properties["mutation_rate"]), seqs_(1), parents_(1,-1), phi_h_(1,1) {
+			rng_(rng), mr_(properties["mutation_rate"]), seqs_(1), parents_(1,-1), birth_ts_(1,0), birth_locs_(1,-1), phi_h_(1,1) {
 	// gamma distribution arbitrarily chosen
 	// parametrized with: mean = k * theta, and: variance = k * theta^2
 	double k = properties["mutation_k"];
@@ -71,10 +73,12 @@ std::string Haplotypes::getSequence(unsigned i){
 	return static_cast<std::string>(seqs_[i]);
 }
 
-np_array<ParentChild> Haplotypes::getMutationTree() const{
-	np_array<ParentChild> tree(parents_.size()-1);
+np_array<MutationTree> Haplotypes::getMutationTree() const{
+	np_array<MutationTree> tree(parents_.size()-1);
 	auto view = tree.mutable_unchecked<1>();
 	for (unsigned i = 1; i < parents_.size(); ++i){
+		view[i-1].t = birth_ts_[i];
+		view[i-1].loc = birth_locs_[i];
 		view[i-1].parent = parents_[i];
 		view[i-1].child = i;
 	}
@@ -142,8 +146,10 @@ np_array<IdSequence> Haplotypes::readAll(){
 	return sequences;
 }
 
-unsigned Haplotypes::newMutation(unsigned i){
+unsigned Haplotypes::newMutation(Time t, PatchID loc, unsigned i){
 	seqs_.emplace_back();
+	birth_ts_.emplace_back(t);
+	birth_locs_.emplace_back(loc);
 	parents_.emplace_back(i);
 	double newphi = phi_h_.at(i);
 	if (i)	{	newphi += phi_shifter_(*rng_);	}

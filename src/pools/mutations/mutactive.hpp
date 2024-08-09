@@ -118,7 +118,7 @@ void MutActive::updateHaplotypes(Time t){
 		for (auto & infectious : hosts){
 			if (t >= infectious.t_next_mut_){
 				Time tnext = t + haplos_->nextMutation();
-				unsigned newmut = haplos_->newMutation(infectious.evolved_mut_);
+				unsigned newmut = haplos_->newMutation(t, patch_id_, infectious.evolved_mut_);
 				infectious.evolveMutation(t, newmut, tnext);
 			}
 		}

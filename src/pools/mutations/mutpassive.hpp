@@ -35,7 +35,7 @@ unsigned MutPassive::size() const{
 MutDiff MutPassive::generate(Time t, unsigned n){
 	Vec<Host> v_mut(n);
 	if (n){
-		unsigned newmutation = haplos_->newMutation(0);
+		unsigned newmutation = haplos_->newMutation(t, patch_id_, 0);
 		for (auto & i : v_mut){
 			Time tnext = t + haplos_->nextMutation();
 			i = Host(t, tnext, patch_id_, count_, newmutation);

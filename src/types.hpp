@@ -76,4 +76,11 @@ struct SequencingRecord{
 	SequencingRecord(Time t, PatchID loc, unsigned id) : t(t), loc(loc), id(id) {};
 };
 
+struct MutationTree{
+	Time t;
+	PatchID loc;
+	unsigned parent;
+	unsigned child;
+};
+
 #endif

@@ -19,4 +19,6 @@ PYBIND11_MODULE(types, m) {
 	PYBIND11_NUMPY_DTYPE(IdPhi, id, phi);
 
 	PYBIND11_NUMPY_DTYPE(SequencingRecord, t, loc, id);
+
+	PYBIND11_NUMPY_DTYPE(MutationTree, t, loc, parent, child);
 }
