@@ -21,12 +21,12 @@ params_dict = {
 	"betas_setter" : "delta",
 	"betas_params" : 0.3, # [1/d]
 	"epsilons_setter" : "delta",
-	"epsilons_params" : 1., # [1/d]
+	"epsilons_params" : 0.5, # [1/d]
 	"mus_setter" : "delta",
 	"mus_params" : 0.2, # [1/d]
 	"I0_setter" : "onehot",
 	"I0_params" : [27,5],
-	"mutation_rate" : 0.06, # [1/d]
+	"mutation_rate" : 0.08, # [1/d]
 	"mutation_k" : 10,
 	"fitness_p" : 0.1,
 	"fitness_delta-" : -0.1,
