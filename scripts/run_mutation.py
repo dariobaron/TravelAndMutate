@@ -18,9 +18,6 @@ import TravelAndMutate.datamanager as datman
 
 def main(working_dir, filename, groupname, seed, suppress_output=False):
 
-	if not working_dir[-1] == "/":
-		working_dir = working_dir + "/"
-
 	with open(f"{working_dir+filename}_{groupname}.json") as paramfile:
 		params_dict = json.load(paramfile)
 
@@ -108,6 +105,8 @@ if __name__ == "__main__":
 	parser.add_argument("--suppressoutput", type=bool, default=False)
 	args = parser.parse_args()
 	working_dir = args.dir
+	if not working_dir[-1] == "/":
+		working_dir = working_dir + "/"
 	filename = args.name
 	groupname = args.group
 	seed = args.seed
