@@ -8,7 +8,7 @@
 #include "../../haplotypes.hpp"
 #include "../../sequencer.hpp"
 #include "../../randomcore.hpp"
-#include "../../../mixlightlib/include/algorithms.hpp"
+#include "mixlightlib/algorithms.hpp"
 #include "mutdiff.hpp"
 
 class MutActive{

@@ -1,7 +1,7 @@
 #ifndef INDIVBIND_HPP
 #define INDIVBIND_HPP
 
-#include "../../../mixlightlib/include/algorithms.hpp"
+#include "mixlightlib/algorithms.hpp"
 #include "indivactive.hpp"
 #include "indivpassive.hpp"
 #include "indivdiff.hpp"

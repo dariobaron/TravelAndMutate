@@ -1,8 +1,9 @@
+SHELL := /bin/bash
 
 # list of all modules
 SOURCES := $(wildcard src/*.cpp)
 # list of all headers
-HEADERS := $(wildcard src/*.hpp src/*/*.hpp src/*/*/*.hpp)
+HEADERS := $(wildcard src/**/*.hpp)
 # extension of the modules
 MODULEEXTENSION := $(shell python-config --extension-suffix)
 PYTHONRUNTIMELIB := $(shell python-config --ldflags)
@@ -15,7 +16,7 @@ MODULENAMES := $(patsubst src/%.cpp,%,$(SOURCES))
 WARNING := -Wall -Wpedantic -Wextra -Wno-sign-compare
 CXX := g++
 CXXFLAGS := -O3 -shared -std=c++20 -fPIC -fconcepts-diagnostics-depth=2 -fvisibility=hidden
-INCLUDES := $(shell python -m pybind11 --includes) -I$(shell python -c "import numpy; print(numpy.get_include())")
+INCLUDES := $(shell python -m pybind11 --includes) -I$(shell python -c "import numpy; print(numpy.get_include())") -Imixlightlib/
 
 
 .PHONY: all install clean $(MODULENAMES) prova prova2

@@ -6,7 +6,7 @@
 #include "../../types.hpp"
 #include "../../individual.hpp"
 #include "../../randomcore.hpp"
-#include "../../../mixlightlib/include/algorithms.hpp"
+#include "mixlightlib/algorithms.hpp"
 #include "indivdiff.hpp"
 
 class IndivActive{

@@ -5,7 +5,7 @@
 #include <exception>
 #include "types.hpp"
 #include "individual.hpp"
-#include "../mixlightlib/include/tree.hpp"
+#include "mixlightlib/tree.hpp"
 #include "randomcore.hpp"
 
 class TreeBalanceProxy{
