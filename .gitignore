@@ -20,6 +20,9 @@ realdata/
 # python caches
 __pycache__/
 
+# build directory
+build/
+
 # compiled libraries and binaries
 *.so
 *.x
