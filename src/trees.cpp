@@ -24,6 +24,7 @@ PYBIND11_MODULE(trees, m) {
 		.def("subset", &PyTree::subset)
 		.def("generateYuleEdges", &PyTree::getYuleEdges)
 		.def("getRandomizedEdges", &PyTree::getRandomizedEdges)
+		.def("renameEdgelist", &PyTree::renameEdgelist)
 	;
 
 }

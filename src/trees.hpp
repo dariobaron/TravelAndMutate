@@ -118,6 +118,16 @@ public:
 		auto edges = randomizeEdges(rng->get(), source);
 		return np_array<ParentChild>(edges.size(), reinterpret_cast<ParentChild*>(edges.data()));
 	};
+	static np_array<unsigned> renameEdgelist(np_array<unsigned> edges, unsigned root){
+		std::vector<Edge> edges_vec;
+		auto edges_view = edges.unchecked<2>();
+		for (unsigned i = 0; i < edges.shape(0); ++i){
+			edges_vec.emplace_back(edges_view(i,0), edges_view(i,1));
+		}
+		auto renamed_edges = Tree::renameEdgelist(edges_vec, root);
+		std::array<size_t,2> shape = {renamed_edges.size(), 2};
+		return np_array<unsigned>(shape, reinterpret_cast<unsigned*>(renamed_edges.data()));
+	};
 	np_array<unsigned> getDepths(){
 		auto depths = computeDepths();
 		return np_array<unsigned>(depths.size(), depths.data());
