@@ -49,7 +49,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	system.setVerbosity(not suppress_output)
 
 	starttime = time.time()
-	system.spreadForTime(params["t_max"])
+	system.spreadForTime(int(round(params["t_max"]/params["dt"])))
 	simulationtime = time.time() - starttime
 
 	starttime = time.time()

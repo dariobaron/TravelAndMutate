@@ -10,28 +10,28 @@ import TravelAndMutate.datamanager as datman
 
 params_dict = {
 	"sys_type" : "mutations",
-	"N_patches" : 107,
+	"N_patches" : 296,#107,
 	"dt" : 0.1, # [d]
-	"t_max" : 10000,
+	"t_max" : 110, # [d]
 	"gamma_trick" : 3,
 	"Ns_setter" : "fromcsv",
-	"Ns_params" : "inputparams/Ns/italy_small.csv",
+	"Ns_params" : "inputparams/Ns/england.csv",
 	"commuting_setter" : "fromcsv",
-	"commuting_params" : "inputparams/c_ij/italy_small.csv",
+	"commuting_params" : "inputparams/c_ij/england.csv",
 	"betas_setter" : "delta",
-	"betas_params" : 0.3, # [1/d]
+	"betas_params" : 0.25, # [1/d]
 	"epsilons_setter" : "delta",
 	"epsilons_params" : 0.5, # [1/d]
 	"mus_setter" : "delta",
 	"mus_params" : 0.2, # [1/d]
 	"I0_setter" : "onehot",
-	"I0_params" : [27,5],
-	"mutation_rate" : 0.08, # [1/d]
+	"I0_params" : [149,5],#[27,5]
+	"mutation_rate" : 0.09, # [1/d]
 	"mutation_k" : 10,
-	"fitness_p" : 0.1,
+	"fitness_p" : 0.2,
 	"fitness_delta-" : -0.1,
-	"fitness_delta+" : +0.02,
-	"sequencing_prob" : 0.00772,
+	"fitness_delta+" : +0.1,
+	"sequencing_prob" : 0.1,#0.00772,
 	"reporting_prob" : 0.25,
 	"sequencing_delay" : 2 # [d]
 }
