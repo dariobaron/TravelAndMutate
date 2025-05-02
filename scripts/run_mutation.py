@@ -66,6 +66,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 		for trajectory in trajectories
 	]
 	haplotree = dealer.getMutationTree()
+	haplotree["t"] = np.round(haplotree["t"]*params["dt"])
 	fitness = dealer.getAllPhi()
 	sampled = sequencer.getSampledIDs()
 	sampled["t"] = np.round(sampled["t"]*params["dt"])
