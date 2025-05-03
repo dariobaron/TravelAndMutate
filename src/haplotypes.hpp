@@ -26,6 +26,7 @@ private:
 public:
 	Haplotypes(RNGcore * rng, std::map<std::string,double> properties);
 	Haplotypes(const np_array<MutationTree> & muttree);
+	Haplotypes(RNGcore * rng, const np_array<MutationTree> & muttree);
 	double getMutationRate() const;
 	double getPhiH(unsigned i) const;
 	unsigned getTotal() const;
@@ -59,6 +60,19 @@ Haplotypes::Haplotypes(RNGcore * rng, std::map<std::string,double> properties) :
 
 Haplotypes::Haplotypes(const np_array<MutationTree> & muttree) :
 			seqs_(muttree.shape(0)+1), parents_(muttree.shape(0)+1), birth_ts_(muttree.shape(0)+1), birth_locs_(muttree.shape(0)+1) {
+	auto view = muttree.unchecked<1>();
+	parents_[0] = -1;
+	birth_ts_[0] = -1;
+	birth_locs_[0] = -1;
+	for (unsigned i = 0; i < muttree.shape(0); ++i){
+		parents_[i+1] = view[i].parent;
+		birth_ts_[i+1] = view[i].t;
+		birth_locs_[i+1] = view[i].loc;
+	}
+}
+
+Haplotypes::Haplotypes(RNGcore * rng, const np_array<MutationTree> & muttree) :
+			rng_(rng), seqs_(muttree.shape(0)+1), parents_(muttree.shape(0)+1), birth_ts_(muttree.shape(0)+1), birth_locs_(muttree.shape(0)+1) {
 	auto view = muttree.unchecked<1>();
 	parents_[0] = -1;
 	birth_ts_[0] = -1;

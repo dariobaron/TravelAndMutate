@@ -1,8 +1,5 @@
 import sys
 import os
-from xml.sax.xmlreader import InputSource
-
-from TravelAndMutate.analyzer import writeDataset
 sys.path[0] = os.getcwd()
 
 import h5py
@@ -10,9 +7,10 @@ import numpy as np
 from tqdm import tqdm
 import multiprocessing as mp
 from argparse import ArgumentParser
+from TravelAndMutate.randominterface import NumpyRandomGenerator
 from TravelAndMutate.argumenthelper import splitInput
 from TravelAndMutate.datamanager import checkIsH5Dataset, checkIsH5Group
-from TravelAndMutate.haplotypes import Haplotype
+from TravelAndMutate.haplotypes import Haplotypes
 
 
 def kernel(tpl):
@@ -22,7 +20,9 @@ def kernel(tpl):
 		with h5py.File(filename) as file:
 			mutationtree = checkIsH5Dataset(file[f"{fullsimname}/mutationtree"])[:]
 			sampled_seqs = checkIsH5Dataset(file[f"{fullsimname}/sequencings"])[:]
-		haplodealer = Haplotype(mutationtree)
+			seed = file[fullsimname].attrs["seed"]
+		random_engine = NumpyRandomGenerator(seed)
+		haplodealer = Haplotypes(random_engine.cpprng, mutationtree)
 		seqs_to_compute = np.unique(sampled_seqs["id"])
 		sequences = haplodealer.read(seqs_to_compute)
 		return fullsimname, sequences
@@ -76,4 +76,4 @@ if __name__ == "__main__":
 			sim = checkIsH5Group(file[fullsimname])
 			if "sequences" in sim.keys():
 				del sim["sequences"]
-			sim.create_dataset("sequences", data=result)
+			sim.create_dataset("sequences", data=result, compression="gzip", compression_opts=9)
