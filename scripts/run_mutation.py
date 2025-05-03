@@ -16,6 +16,12 @@ from TravelAndMutate.sequencer import Sequencer
 from TravelAndMutate.system import SystemMutations as System
 import TravelAndMutate.datamanager as datman
 
+
+def appendSlash(string):
+	if not string[-1] == "/":
+		string = string + "/"
+	return string
+
 def main(working_dir, filename, groupname, seed, suppress_output=False):
 
 	with open(f"{working_dir+filename}_{groupname}.json") as paramfile:
@@ -105,9 +111,7 @@ if __name__ == "__main__":
 	parser.add_argument("--seed", type=int, required=True)
 	parser.add_argument("--suppressoutput", type=bool, default=False)
 	args = parser.parse_args()
-	working_dir = args.dir
-	if not working_dir[-1] == "/":
-		working_dir = working_dir + "/"
+	working_dir = appendSlash(args.dir)
 	filename = args.name
 	groupname = args.group
 	seed = args.seed
