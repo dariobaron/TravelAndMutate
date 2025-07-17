@@ -180,12 +180,6 @@ public:
 			edges.emplace_back(*iter, node.id());
 		}
 		std::sort(edges.begin(), edges.end());
-		std::map<Node::ID,Node::ID> newnames({{0,0}});
-		for (auto & edge : edges){
-			edge.parent = newnames[edge.parent];
-			const auto [it, success] = newnames.insert({edge.child, newnames.size()});
-			edge.child = it->second;
-		}
 		return np_array<ParentChild>(edges.size(), reinterpret_cast<ParentChild*>(edges.data()));
 	}
 };
