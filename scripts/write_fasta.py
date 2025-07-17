@@ -26,13 +26,14 @@ def writeFasta(simulation, outputfilename, patches):
 		print(f"Error reading datasets from simulation {simulation.name}: {exception}")
 		return False
 	with open(outputfilename, "w") as fasta_file:
+		print(f">Extern", 0, start_date, sep="/", file=fasta_file)
+		seq = sequences.loc[0]
+		print(seq, file=fasta_file)
 		for _,(t,loc,id) in sequencings.iterrows():
 			date = start_date + timedelta(t)
-			print(f">{id}", patches.loc[loc], date, sep="|", file=fasta_file)
+			print(f">{patches.loc[loc]}", id, date, sep="/", file=fasta_file)
 			seq = sequences.loc[id]
-			for chkpnt in range(int(np.ceil(len(seq)/80))):
-				print(seq[chkpnt*80:(chkpnt+1)*80], file=fasta_file)
-			print(file=fasta_file)
+			print(seq, file=fasta_file)
 	return True
 
 
