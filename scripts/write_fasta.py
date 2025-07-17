@@ -26,7 +26,7 @@ def writeFasta(simulation, outputfilename, patches):
 		print(f"Error reading datasets from simulation {simulation.name}: {exception}")
 		return False
 	with open(outputfilename, "w") as fasta_file:
-		print(f">Extern", 0, start_date, sep="/", file=fasta_file)
+		print(f">Reference", 0, start_date, sep="/", file=fasta_file)
 		seq = sequences.loc[0]
 		print(seq, file=fasta_file)
 		for _,(t,loc,id) in sequencings.iterrows():
