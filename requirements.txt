@@ -1,5 +1,5 @@
 matplotlib==3.8.2
-jupyterlab==4.1.0
+jupyterlab==4.2.5
 seaborn==0.13.2
 pybind11==2.11.1
 numpy==1.26.4
