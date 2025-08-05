@@ -140,7 +140,11 @@ np_array<IdSequence> Haplotypes::read(const np_array<unsigned> & ids){
 	computeIthSequence(0);
 	for (unsigned i = 0; i < ids.shape(0); ++i){
 		unsigned current_id = view_ids[i];
-		if (current_id == 0)	{	continue;	}
+		if (current_id == 0){
+			view_seqs[i].id = 0;
+			seqs_[0].writeSequenceInto(view_seqs[i].sequence);
+			continue;
+		}
 		if (i > 0){
 			if (current_id <= view_ids[i-1]){
 				throw std::runtime_error("Array of IDs to read must be sorted and without duplicates");

@@ -23,7 +23,7 @@ def kernel(tpl):
 			seed = file[fullsimname].attrs["seed"]
 		random_engine = NumpyRandomGenerator(seed)
 		haplodealer = Haplotypes(random_engine.cpprng, mutationtree)
-		seqs_to_compute = np.unique(sampled_seqs["id"])
+		seqs_to_compute = np.concatenate((np.array([0], dtype="u4"), np.unique(sampled_seqs["id"])))
 		sequences = haplodealer.read(seqs_to_compute)
 		return fullsimname, sequences
 	except Exception as exception:
@@ -39,7 +39,6 @@ if __name__ == "__main__":
 	parser.add_argument("--seed", type=str, default="")
 	parser.add_argument("--onlysurvived", type=bool, default=True)
 	parser.add_argument("--overwrite", type=bool, default=False)
-	parser.add_argument("--nprocs", type=int, default=0)
 	args = parser.parse_args()
 	filename = args.file
 	with h5py.File(filename) as file:
@@ -61,18 +60,9 @@ if __name__ == "__main__":
 		if not overwrite:
 			all_seeds = {groupname : [simname for simname in seeds if "sequences" not in checkIsH5Group(file[f"{groupname}/{simname}"]).keys()] for groupname,seeds in all_seeds.items()}
 	iterable = [(filename, f"{groupname}/{simname}") for groupname,seeds in all_seeds.items() for simname in seeds]
-	nprocs = args.nprocs
-	if nprocs < 2:
-		results = []
-		for iteration in tqdm(iterable, miniters=1, mininterval=1, dynamic_ncols=True):
-			results.append(kernel(iteration))
-	else:
-		with mp.Pool(nprocs-1) as workers:
-			results = workers.imap_unordered(kernel, iterable)
-			for fullsimname,result in tqdm(results, total=len(iterable), miniters=1, mininterval=1, dynamic_ncols=True):
-				_ = result.shape
 	with h5py.File(filename, "a") as file:
-		for fullsimname,result in results:
+		for iteration in tqdm(iterable, miniters=1, mininterval=1, dynamic_ncols=True):
+			fullsimname,result = kernel(iteration)
 			sim = checkIsH5Group(file[fullsimname])
 			if "sequences" in sim.keys():
 				del sim["sequences"]
