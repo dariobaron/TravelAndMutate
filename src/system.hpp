@@ -100,6 +100,12 @@ void System<PoolType>::seedEpidemic(){
 	for (auto & p : patches_){
 		p.seedEpidemic();
 	}
+	sequencer_->update(Time(0));
+	Host fictious_host;
+	fictious_host.t_sequencing_ = 0;
+	fictious_host.patch_ = -1;
+	fictious_host.evolved_mut_ = 0;
+	sequencer_->record(fictious_host);
 }
 
 
