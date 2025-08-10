@@ -58,8 +58,7 @@ def kernel(tpl):
 			if counts.shape[0] > 1:
 				sorted_counts = np.sort(counts)[::-1]
 				metrics["SequencingsByHaplos_2ndmax"] = (counts[0] / counts[1])
-				subedges = tree.subset(sequencings["id"])
-				subtree = Tree(subedges)
+				subtree = tree.subset(sequencings["id"])
 				subdepths = subtree.computeDepths()
 				metrics["SubTreeDepth_max"] = subdepths.max()
 				metrics["SubTreeDepth_mean"] = subdepths.mean()

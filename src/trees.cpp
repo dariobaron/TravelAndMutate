@@ -12,6 +12,8 @@ PYBIND11_MODULE(trees, m) {
 	
 	py::class_<PyTree>(m, "Tree")
 		.def(py::init<const np_array<ParentChild>&>())
+		.def("getNodeNames", &PyTree::returnNodeNames)
+		.def("getEdgelist", &PyTree::returnEdgelist)
 		.def("computeDepths", &PyTree::getDepths)
 		.def("computeWidths", &PyTree::getWidths)
 		.def("computeProbabilities", &PyTree::getProbabilities)
@@ -22,9 +24,8 @@ PYBIND11_MODULE(trees, m) {
 		.def("computeCopheneticNorm", &PyTree::getCopheneticNorm)
 		.def("computeNChildrenPerNode", &PyTree::getNChildren)
 		.def("subset", &PyTree::subset)
-		.def("generateYuleEdges", &PyTree::getYuleEdges)
-		.def("getRandomizedEdges", &PyTree::getRandomizedEdges)
-		.def("renameEdgelist", &PyTree::renameEdgelist)
+		.def_static("generateYuleEdges", &PyTree::getYuleEdges)
+		.def_static("getRandomizedEdges", &PyTree::getRandomizedEdges)
 	;
 
 }

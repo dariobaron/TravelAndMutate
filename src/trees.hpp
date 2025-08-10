@@ -118,16 +118,14 @@ public:
 		auto edges = randomizeEdges(rng->get(), source);
 		return np_array<ParentChild>(edges.size(), reinterpret_cast<ParentChild*>(edges.data()));
 	};
-	static np_array<unsigned> renameEdgelist(np_array<unsigned> edges, unsigned root){
-		std::vector<Edge> edges_vec;
-		auto edges_view = edges.unchecked<2>();
-		for (unsigned i = 0; i < edges.shape(0); ++i){
-			edges_vec.emplace_back(edges_view(i,0), edges_view(i,1));
-		}
-		auto renamed_edges = Tree::renameEdgelist(edges_vec, root);
-		std::array<size_t,2> shape = {renamed_edges.size(), 2};
-		return np_array<unsigned>(shape, reinterpret_cast<unsigned*>(renamed_edges.data()));
-	};
+	np_array<unsigned> returnNodeNames() const{
+		auto names = getNodeNames();
+		return np_array<unsigned>(names.size(), names.data());
+	}
+	np_array<ParentChild> returnEdgelist() const{
+		auto edgelist = getEdgelist();
+		return np_array<ParentChild>(edgelist.size(), reinterpret_cast<const ParentChild*>(edgelist.data()));
+	}
 	np_array<unsigned> getDepths(){
 		auto depths = computeDepths();
 		return np_array<unsigned>(depths.size(), depths.data());
@@ -160,27 +158,11 @@ public:
 		auto nchildren = computeNChildrenPerNode();
 		return np_array<unsigned>(nchildren.size(), nchildren.data());
 	}
-	np_array<ParentChild> subset(const np_array<Node::ID> & nodes_to_take){
-		auto view = nodes_to_take.unchecked<1>();
-		std::set<Node::ID> nodesubset({0});
-		for (unsigned i = 0; i < nodes_to_take.shape(0); ++i){
-			nodesubset.insert(view[i]);
-		}
-		const auto & nodes = getNodes();
-		std::vector<Edge> edges;
-		for (Node::ID id : nodesubset){
-			if (id == 0)	{	continue;	}
-			const Node & node = nodes[id];
-			const Node * parent_ptr = node.parent();
-			auto iter = nodesubset.find(parent_ptr->id());
-			while (iter == nodesubset.end()){
-				parent_ptr = parent_ptr->parent();
-				iter = nodesubset.find(parent_ptr->id());
-			}
-			edges.emplace_back(*iter, node.id());
-		}
-		std::sort(edges.begin(), edges.end());
-		return np_array<ParentChild>(edges.size(), reinterpret_cast<ParentChild*>(edges.data()));
+	PyTree subset(const np_array<Node::NAME> & nodes_to_keep){
+		std::vector<Node::NAME> nodes_names(nodes_to_keep.data(), nodes_to_keep.data()+nodes_to_keep.shape(0));
+		auto subtree = prune(nodes_names);
+		auto subedgelist = subtree.getEdgelist();
+		return PyTree(np_array<ParentChild>(subedgelist.size(), reinterpret_cast<ParentChild*>(subedgelist.data())));
 	}
 };
 
