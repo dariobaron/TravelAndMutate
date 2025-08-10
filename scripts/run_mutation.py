@@ -99,6 +99,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 		print(f"Time elapsed simulating: {round(simulationtime, 2)} s")
 		print(f"Time elapsed post-processing: {round(postprocesstime, 2)} s")
 		print(f"Time elapsed storing data: {round(storingtime, 2)} s")
+		print(f"Saved simulation to {working_dir+filename}")
 
 	return infections.shape[0]
 
