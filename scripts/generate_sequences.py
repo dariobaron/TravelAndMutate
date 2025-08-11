@@ -23,7 +23,7 @@ def kernel(tpl):
 			seed = file[fullsimname].attrs["seed"]
 		random_engine = NumpyRandomGenerator(seed)
 		haplodealer = Haplotypes(random_engine.cpprng, mutationtree)
-		seqs_to_compute = np.concatenate((np.array([0], dtype="u4"), np.unique(sampled_seqs["id"])))
+		seqs_to_compute = np.unique(sampled_seqs["id"])
 		sequences = haplodealer.read(seqs_to_compute)
 		return fullsimname, sequences
 	except Exception as exception:
