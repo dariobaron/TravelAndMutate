@@ -16,6 +16,7 @@ public:
 	Sequence(RNGcore * rng);
 	Sequence(std::string str);
 	operator std::string() const;
+	bool operator<(const Sequence & other) const;
 	void writeSequenceInto(char * ptr) const;
 	Sequence generateMutation(RNGcore * rng) const;
 	bool isValid() const;
@@ -57,6 +58,21 @@ Sequence<LEN>::operator std::string() const{
 		decoded[i] = getCharFromBits(i);
 	}
 	return decoded;
+}
+
+template<unsigned LEN>
+bool Sequence<LEN>::operator<(const Sequence & other) const{
+	if ((!valid_) || (!other.valid_)){
+		return false;
+	}
+	for (unsigned i = 0; i < LEN; ++i){
+		char base1 = getCharFromBits(i);
+		char base2 = other.getCharFromBits(i);
+		if (base1 != base2){
+			return base1 < base2;
+		}
+	}
+	return false;
 }
 
 template<unsigned LEN>

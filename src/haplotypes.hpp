@@ -1,6 +1,7 @@
 #ifndef HAPLOTYPES_HPP
 #define HAPLOTYPES_HPP
 
+#include <set>
 #include <map>
 #include <vector>
 #include <string>
@@ -40,6 +41,7 @@ public:
 	Time nextMutation();
 	Vec<unsigned> getParents() const {return parents_;};
 private:
+	std::set<Sequence<seq_len>> unique_seqs_;
 	void computeIthSequence(unsigned i);
 };
 
@@ -138,6 +140,7 @@ np_array<IdSequence> Haplotypes::read(const np_array<unsigned> & ids){
 	auto view_seqs = sequences.mutable_unchecked<1>();
 	auto view_ids = ids.unchecked<1>();
 	computeIthSequence(0);
+	unique_seqs_.insert(seqs_.begin(), seqs_.end());
 	for (unsigned i = 0; i < ids.shape(0); ++i){
 		unsigned current_id = view_ids[i];
 		if (current_id == 0){
@@ -150,6 +153,13 @@ np_array<IdSequence> Haplotypes::read(const np_array<unsigned> & ids){
 				throw std::runtime_error("Array of IDs to read must be sorted and without duplicates");
 			}
 		}
+/**/	///////// from here on, it's the new algorithm. Not memory efficient, but solid
+		computeIthSequence(current_id);
+		view_seqs[i].id = current_id;
+		seqs_[current_id].writeSequenceInto(view_seqs[i].sequence);
+/**/
+/*
+		///////// from here on, it's the old algorithm. Very memory efficient but inconsistent for multiple reads
 		unsigned jumps = 0;
 		unsigned parent_id = parents_[current_id];
 		while (!seqs_[parent_id].isValid()){
@@ -163,18 +173,22 @@ np_array<IdSequence> Haplotypes::read(const np_array<unsigned> & ids){
 		seqs_[current_id] = newsequence;
 		view_seqs[i].id = current_id;
 		newsequence.writeSequenceInto(view_seqs[i].sequence);
+*/
 	}
+	unique_seqs_.clear();
 	return sequences;
 }
 
 np_array<IdSequence> Haplotypes::readAll(){
 	np_array<IdSequence> sequences(seqs_.size());
 	auto view_seqs = sequences.mutable_unchecked<1>();
+	unique_seqs_.insert(seqs_.begin(), seqs_.end());
 	for (unsigned i = 0; i < seqs_.size(); ++i){
 		computeIthSequence(i);
 		view_seqs[i].id = i;
 		seqs_[i].writeSequenceInto(view_seqs[i].sequence);
 	}
+	unique_seqs_.clear();
 	return sequences;
 }
 
@@ -197,11 +211,21 @@ void Haplotypes::computeIthSequence(unsigned i){
 	if (!seqs_.at(i).isValid()){
 		if (i == 0){
 			seqs_[i] = Sequence<seq_len>(rng_);
+			auto [it, inserted] = unique_seqs_.insert(seqs_[i]);
+			if ((!inserted) || (unique_seqs_.size() > 1)){
+				throw std::runtime_error("Sequence 0 is not the unique already computed, this should never happen");
+			}
 		}
 		else{
 			unsigned parent = parents_[i];
 			computeIthSequence(parent);
-			seqs_[i] = seqs_[parent].generateMutation(rng_);
+			auto new_seq = seqs_[parent].generateMutation(rng_);
+			auto [it, inserted] = unique_seqs_.insert(new_seq);
+			while (!inserted){
+				new_seq = seqs_[parent].generateMutation(rng_);
+				inserted = unique_seqs_.insert(new_seq).second;
+			}
+			seqs_[i] = new_seq;
 		}
 	}
 }
