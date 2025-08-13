@@ -22,6 +22,13 @@ def appendSlash(string):
 		string = string + "/"
 	return string
 
+def setSurvived(sequencings):
+	threshold_samples = 150
+	threshold_haplos = 30
+	enough_haploss = np.unique(sequencings["id"]).shape[0] >= threshold_haplos
+	enough_samples = sequencings.shape[0] >= threshold_samples
+	return enough_haploss and enough_samples
+
 def main(working_dir, filename, groupname, seed, suppress_output=False):
 
 	with open(f"{working_dir+filename}_{groupname}.json") as paramfile:
@@ -79,7 +86,7 @@ def main(working_dir, filename, groupname, seed, suppress_output=False):
 	sim_attrs = {
 		"seed" : seed,
 		"exec_time" : simulationtime,
-		"survived" : sampled.shape[0] > 0
+		"survived" : setSurvived(sampled),
 	}
 	sim_attrs.update(params.getSimParams())
 	postprocesstime = time.time() - starttime

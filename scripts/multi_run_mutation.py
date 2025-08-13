@@ -6,21 +6,7 @@ from scripts.run_mutation import main as runner
 import multiprocessing as mp
 from argparse import ArgumentParser
 import numpy as np
-
-
-def splitInput(string):
-	intlist = []
-	if "--" in string:
-		string = string.split("--")
-	if not isinstance(string, list):
-		string = [string]
-	for el in string:
-		if ":" in el:
-			start,finish = el.split(":")
-			intlist.extend(range(int(start),int(finish)))
-		else:
-			intlist.append(int(el))
-	return intlist
+from TravelAndMutate.argumenthelper import splitInput
 
 
 def kernelNSucc(tpl):
@@ -51,13 +37,13 @@ if __name__ == "__main__":
 	parser.add_argument("--name", type=str, required=True)
 	parser.add_argument("--group", type=str, required=True)
 	parser.add_argument("--seed", type=str, default="0")
-	parser.add_argument("--nsucc", type=int, default=5)
+	parser.add_argument("--nsucc", type=int, default=-1)
 	parser.add_argument("--nprocs", type=int, required=True)
 	args = parser.parse_args()
 	working_dir = args.dir
 	filename = args.name
-	groups = splitInput(args.group)
-	seeds = splitInput(args.seed)
+	groups = [int(g) for g in splitInput(args.group)]
+	seeds = [int(s) for s in splitInput(args.seed)]
 	nsucc = args.nsucc
 	nprocs = args.nprocs
 	if nsucc != -1 and len(seeds) != 1:
