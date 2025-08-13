@@ -40,14 +40,18 @@ if __name__ == "__main__":
 	parser.add_argument("--onlysurvived", type=bool, default=True)
 	parser.add_argument("--overwrite", type=bool, default=False)
 	args = parser.parse_args()
+
 	filename = args.file
-	with h5py.File(filename) as file:
-		groupnames = args.group
-		if groupnames == "":
+	
+	groupnames = args.group
+	if groupnames == "":
+		with h5py.File(filename) as file:
 			groupnames = list(file.keys())
-		else:
-			groupnames = splitInput(groupnames)
-		seeds = args.seed
+	else:
+		groupnames = splitInput(groupnames)
+	
+	seeds = args.seed
+	with h5py.File(filename) as file:
 		if seeds == "":
 			all_seeds = {name : list(group.keys()) for name,group in file.items()}
 		else:
@@ -59,6 +63,7 @@ if __name__ == "__main__":
 		overwrite = args.overwrite
 		if not overwrite:
 			all_seeds = {groupname : [simname for simname in seeds if "sequences" not in checkIsH5Group(file[f"{groupname}/{simname}"]).keys()] for groupname,seeds in all_seeds.items()}
+	
 	iterable = [(filename, f"{groupname}/{simname}") for groupname,seeds in all_seeds.items() for simname in seeds]
 	with h5py.File(filename, "a") as file:
 		for iteration in tqdm(iterable, miniters=1, mininterval=1, dynamic_ncols=True):

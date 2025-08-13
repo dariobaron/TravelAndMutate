@@ -65,12 +65,12 @@ def main(inputbasename, outfilename, nprocs, suppress_output=False):
 				infilenames[groupname] = [filename for i,filename in enumerate(infilenames[groupname]) if compliance[i]]
 
 	overwritten = []
-	for groupname,namelist in tqdm(infilenames.items(), desc="Copying files", dynamic_ncols=True):
+	for groupname,namelist in tqdm(infilenames.items(), desc="Copying groups", dynamic_ncols=True):
 		toremove = []
 		outfile = h5py.File(outfilename, "a")
 		outgroup = checkIsH5Group(outfile[groupname])
 		try:
-			for infilename in namelist:
+			for infilename in tqdm(namelist, desc="Copying seeds"):
 				with h5py.File(infilename) as infile:
 					ingroup = checkIsH5Group(infile[groupname])
 					runname = list(ingroup.keys())[0]
