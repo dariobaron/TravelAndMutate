@@ -8,7 +8,9 @@ import numpy as np
 import h5py
 import pandas as pd
 from datetime import datetime, timedelta
+from tqdm import tqdm
 from TravelAndMutate.datamanager import checkIsH5Group
+from TravelAndMutate.argumenthelper import splitInput
 
 
 def appendSlash(string):
@@ -72,15 +74,21 @@ if __name__ == "__main__":
 	parser.add_argument("--dir", type=str, required=True)
 	parser.add_argument("--name", type=str, required=True)
 	parser.add_argument("--group", type=str, required=True)
-	parser.add_argument("--seed", type=int, required=True)
+	parser.add_argument("--seed", type=str, default="all")
 	parser.add_argument("--outdir", type=str, default="")
 	args = parser.parse_args()
 	input_dir = appendSlash(args.dir)
 	basename = args.name
 	group = args.group
 	seed = args.seed
+	if seed == "all":
+		with h5py.File(f"{input_dir}{basename}.h5") as file:
+			seeds = [sim.attrs["seed"] for sim in file.require_group(group).values()]
+	else:
+		seeds = splitInput(seed)
 	if args.outdir == "":
 		output_dir = input_dir
 	else:
 		output_dir = appendSlash(args.outdir)
-	main(input_dir, output_dir, basename, group, seed)
+	for seed in tqdm(seeds, desc="Processing seeds", dynamic_ncols=True):
+		main(input_dir, output_dir, basename, group, seed)
