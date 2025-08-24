@@ -114,7 +114,8 @@ def recursivelyCopyAttributes(srcgrp, destgrp):
 		destgrp.attrs.create(key,val)
 	if isinstance(srcgrp, h5py.Group):
 		for key in srcgrp.keys():
-			recursivelyCopyAttributes(srcgrp[key], destgrp[key])
+			if key in destgrp:
+				recursivelyCopyAttributes(srcgrp[key], destgrp[key])
 
 
 def checkAttributes(group, params_dict):
