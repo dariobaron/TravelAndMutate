@@ -31,6 +31,7 @@ def kernel(tpl):
 		df = pd.DataFrame(index=subtree.getNodeNames())
 		df["outDeg"] = subtree.computeNChildrenPerNode()
 		df["inDeg"] = np.ones(df.shape[0], dtype="u4")
+		df.loc[0, "inDeg"] = 0  # root node has no parent
 		df["depth"] = subtree.computeDepths()
 		return df, False
 	except Exception as exception:
@@ -45,6 +46,8 @@ if __name__ == "__main__":
 	parser.add_argument("--nprocs", type=int, default=0)
 	args = parser.parse_args()
 	infilename = args.file
+	if not infilename.endswith(".h5"):
+		infilename += ".h5"
 	if not os.path.exists(infilename):
 		print(f"File {infilename} does not exist.")
 		sys.exit(1)
