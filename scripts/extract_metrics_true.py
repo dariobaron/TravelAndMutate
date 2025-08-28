@@ -33,6 +33,7 @@ def kernel(tpl):
 		df["inDeg"] = np.ones(df.shape[0], dtype="u4")
 		df.loc[0, "inDeg"] = 0  # root node has no parent
 		df["depth"] = subtree.computeDepths()
+		df["subtreeSize"] = subtree.computeSubtreeSizes()
 		return df, False
 	except Exception as exception:
 		print(f"Error processing {simname}: {repr(exception)}")

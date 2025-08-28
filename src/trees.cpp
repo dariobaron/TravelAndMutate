@@ -17,6 +17,7 @@ PYBIND11_MODULE(trees, m) {
 		.def("computeDepths", &PyTree::getDepths)
 		.def("computeWidths", &PyTree::getWidths)
 		.def("computeProbabilities", &PyTree::getProbabilities)
+		.def("computeSubtreeSizes", &PyTree::getSubtreeSizes)
 		.def("computeNLeavesSubtree", &PyTree::getNLeavesSubtree)
 		.def("computeB2", &PyTree::getB2)
 		.def("computeB2Norm", &PyTree::getB2Norm)

@@ -138,6 +138,10 @@ public:
 		auto probs = computeProbabilities();
 		return np_array<double>(probs.size(), probs.data());
 	};
+	np_array<unsigned> getSubtreeSizes(){
+		auto subtree_sizes = computeSubtreeSizes();
+		return np_array<unsigned>(subtree_sizes.size(), subtree_sizes.data());
+	};
 	np_array<unsigned> getNLeavesSubtree(){
 		auto nL_subtree = computeNLeavesSubtree();
 		return np_array<unsigned>(nL_subtree.size(), nL_subtree.data());

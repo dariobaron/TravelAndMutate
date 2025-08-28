@@ -10,6 +10,7 @@ import multiprocessing as mp
 from argparse import ArgumentParser
 import networkx as nx
 from glob import glob
+from TravelAndMutate.dag import computeSubnetSizes
 
 
 def kernel(inputfilename):
@@ -26,6 +27,13 @@ def kernel(inputfilename):
 		depths.drop(index=isolated_nodes, inplace=True, errors="ignore")
 		df["depth"] = depths.min(axis=1).astype(int)
 		df.index = df.index.astype(int)
+		edgelist = []
+		for a in nx.to_edgelist(graph):
+			edgelist.append([a[0], a[1]])
+		edgelist = pd.DataFrame(edgelist, columns=["parent","child"]).astype("u4")
+		edgelist.sort_values(by=["parent", "child"], inplace=True)
+		edgelist = edgelist.to_records(index=False)
+		df["subtreeSize"] = computeSubnetSizes(edgelist, [int(root) for root in roots])
 		return df
 	except Exception as exception:
 		print(f"Occurred for file {inputfilename}", end="\t:\t")
