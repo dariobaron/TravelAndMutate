@@ -32,8 +32,12 @@ def kernel(tpl):
 				run = checkIsH5Group(infile[groupname+"/"+seedstolook[i]])
 				seed = run.attrs["seed"]
 				sequencings = checkIsH5Dataset(run["sequencings"]).fields(["t","id"])[:]
+				fitness = checkIsH5Dataset(run["fitness"])[:]
 			ids,counts = np.unique(sequencings["id"], return_counts=True)
-			df = pd.DataFrame({"id":ids, "counts":counts}, dtype="u4")
+			df = pd.DataFrame({"id":ids, "counts":counts}, dtype="u4").set_index("id")
+			fitness_df = pd.DataFrame.from_records(fitness, index="id")
+			df["fitness"] = fitness_df.loc[df.index]["phi"]
+			df.reset_index(inplace=True)
 			df.set_index(np.full(df.shape[0], seed, dtype="u4"), inplace=True)
 			df.index.name = "seed"
 			result.append(df)
