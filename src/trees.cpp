@@ -25,6 +25,7 @@ PYBIND11_MODULE(trees, m) {
 		.def("computeCopheneticNorm", &PyTree::getCopheneticNorm)
 		.def("computeNChildrenPerNode", &PyTree::getNChildren)
 		.def("subset", &PyTree::subset)
+		.def("computeDistanceFromAncestor", &PyTree::getDistanceFromAncestor)
 		.def_static("generateYuleEdges", &PyTree::getYuleEdges)
 		.def_static("getRandomizedEdges", &PyTree::getRandomizedEdges)
 	;

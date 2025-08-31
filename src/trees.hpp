@@ -168,6 +168,13 @@ public:
 		auto subedgelist = subtree.getEdgelist();
 		return PyTree(np_array<ParentChild>(subedgelist.size(), reinterpret_cast<ParentChild*>(subedgelist.data())));
 	}
+	np_array<unsigned> getDistanceFromAncestor(const np_array<ParentChild>& edges){
+		np_array<unsigned> result(edges.shape(0));
+		for (unsigned i = 0; i < edges.shape(0); ++i){
+			result.mutable_at(i) = computeDistanceFromAncestor(edges.at(i).parent, edges.at(i).child);
+		}
+		return result;
+	};
 };
 
 #endif
