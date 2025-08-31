@@ -8,14 +8,21 @@ import numpy as np
 from tqdm import tqdm
 from argparse import ArgumentParser
 from TravelAndMutate.datamanager import checkIsH5Group
+from numpy.lib.recfunctions import structured_to_unstructured
 
 
 def condition(simulation):
-	threshold_samples = 150
-	threshold_haplos = 30
-	enough_haploss = np.unique(simulation["sequencings"].fields("id")[:]).shape[0] >= threshold_haplos
-	enough_samples = simulation["sequencings"].shape[0] >= threshold_samples
-	return enough_haploss and enough_samples
+#	threshold_samples = 150
+#	threshold_haplos = 30
+#	enough_haploss = np.unique(simulation["sequencings"].fields("id")[:]).shape[0] >= threshold_haplos
+#	enough_samples = simulation["sequencings"].shape[0] >= threshold_samples
+#	return enough_haploss and enough_samples
+	threshold_infected = 5000
+	arr = np.array([patch[-1] for patch in simulation["trajectories"].values()])
+	arr = arr[["E","I","R"]]
+	tot_infected = structured_to_unstructured(arr).sum()
+	enough_infected = tot_infected >= threshold_infected
+	return enough_infected
 
 
 if __name__ == "__main__":
